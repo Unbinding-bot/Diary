@@ -378,6 +378,16 @@ body {
 }
 .explanation-text:empty::before { content: attr(data-ph); opacity: 0.5; }
 .explanation-text:focus { background: var(--paper2); color: var(--ink2); border-left-color: var(--accent); }
+.expl-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-family: var(--font-ui);
+  color: var(--accent2); background: var(--accent-light);
+  border: none; border-radius: 8px; padding: 2px 7px;
+  cursor: pointer; margin-top: 3px; transition: all 0.15s;
+  user-select: none;
+}
+.expl-chip:hover { background: var(--accent); color: #fff; }
+.expl-chip.open { background: var(--accent); color: #fff; }
 
 /* Subtasks */
 .subtask-list {
@@ -494,6 +504,7 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Recording card */
 .rec-card {
   background: var(--paper2); border: 1px solid var(--line); border-radius: 9px;
   padding: 9px 12px; transition: box-shadow 0.18s;
@@ -504,24 +515,66 @@ body {
   font-family: var(--font-main); font-size: 15px; font-weight: 600;
   color: var(--accent2); margin-bottom: 5px;
 }
-.rec-name-edit { outline: none; background: transparent; border: none; font: inherit; color: inherit; flex: 1; }
-.rec-del { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 15px; opacity: 0.4; transition: opacity 0.18s; }
-.rec-del:hover { opacity: 1; color: #c0392b; }
-.rec-audio { width: 100%; height: 32px; margin: 2px 0; }
-.rec-meta { font-size: 10px; color: var(--ink3); font-family: var(--font-ui); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
-.rec-transcript-btn {
-  margin-top: 5px; background: none; border: 1px solid var(--line);
-  color: var(--ink3); padding: 2px 8px; border-radius: 8px;
-  cursor: pointer; font-size: 11px; font-family: var(--font-ui); transition: all 0.18s;
+.rec-name-edit {
+  outline: none; background: transparent; border: none; font: inherit; color: inherit;
+  flex: 1; min-width: 0;
 }
-.rec-transcript-btn:hover { background: var(--accent-light); color: var(--accent); }
+.rec-card-btns { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
+/* "🗑 Audio" button — only visible on hover */
+.rec-audio-del {
+  opacity: 0; background: none; border: 1px solid var(--line);
+  color: var(--ink3); padding: 2px 7px; border-radius: 6px; cursor: pointer;
+  font-size: 10px; font-family: var(--font-ui); transition: all 0.18s; white-space: nowrap;
+}
+.rec-card:hover .rec-audio-del { opacity: 1; }
+.rec-audio-del:hover { background: #fde8e8; border-color: #c0392b; color: #c0392b; }
+/* × delete whole card */
+.rec-del {
+  opacity: 0; background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 18px; line-height: 1; padding: 0 2px; transition: opacity 0.18s;
+}
+.rec-card:hover .rec-del { opacity: 0.45; }
+.rec-del:hover { opacity: 1 !important; color: #c0392b; }
+/* Placeholder when audio is removed */
+.rec-no-audio {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+  font-style: italic; padding: 5px 2px; margin: 3px 0;
+  border: 1px dashed var(--line); border-radius: 6px; text-align: center;
+}
+.rec-audio { width: 100%; height: 32px; margin: 3px 0; }
+.rec-meta {
+  font-size: 10px; color: var(--ink3); font-family: var(--font-ui);
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px;
+}
+/* Transcript toggle row */
+.rec-tx-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 7px;
+}
+.rec-transcript-btn {
+  background: none; border: 1px solid var(--line); color: var(--ink3);
+  padding: 2px 9px; border-radius: 8px; cursor: pointer;
+  font-size: 11px; font-family: var(--font-ui); transition: all 0.18s;
+}
+.rec-transcript-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.rec-tx-words { font-size: 10px; color: var(--ink3); font-family: var(--font-ui); }
+/* Transcript area — scrollable, editable, hidden by default */
 .rec-transcript {
   background: var(--paper); border-left: 3px solid var(--accent-light);
-  padding: 6px 9px; border-radius: 0 6px 6px 0;
+  padding: 7px 10px; border-radius: 0 6px 6px 0;
   font-family: var(--font-main); font-size: 14px; color: var(--ink2);
-  line-height: 1.55; margin-top: 5px; display: none;
+  line-height: 1.6; margin-top: 6px;
+  display: none;           /* toggled via .open */
+  max-height: 200px;       /* scroll for long transcripts */
+  overflow-y: auto;
+  outline: none; white-space: pre-wrap; word-break: break-word;
 }
 .rec-transcript.open { display: block; }
+.rec-transcript:focus { border-left-color: var(--accent); background: var(--paper); }
+.rec-transcript:empty::before {
+  content: 'No transcript yet — type one here or upload an audio to generate one…';
+  opacity: 0.4; font-style: italic; pointer-events: none;
+}
 
 /* ══════════════════════════════════════════
    DESKTOP BOTTOM NAV BAR
@@ -580,6 +633,9 @@ body {
   .imp-item, .check-item { font-size: 16px; }
   .add-row { padding: 2px 14px 8px; }
   .recordings-wrap { padding: 6px 14px 10px; }
+  /* On mobile, always show the audio delete button */
+  .rec-audio-del { opacity: 0.7; }
+  .rec-del { opacity: 0.4; }
 
   #desk-subnav { display: none; }
   #mobile-nav {
@@ -873,7 +929,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
                 ondragleave="dragLeave(event)"
                 ondrop="dropAudio(event)">
                 <span class="uz-icon">🎵</span>
-                Tap to upload recording, or drag & drop<br>
+                Tap to upload recording, or drag &amp; drop<br>
                 <span style="font-size:10px;opacity:0.7;margin-top:2px;display:block">MP3 · M4A · WAV · OGG · WEBM</span>
               </div>
               <input type="file" id="audio-in" accept="audio/*" style="display:none" onchange="uploadAudio(this)">
@@ -1088,22 +1144,17 @@ const DRIVE_SCOPE = IS_HTTPS
   : 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILENAME = 'my-diary-backup.json';
 const DRIVE_FOLDER_NAME = 'My Diary';
-const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com'; // ← paste your Client ID here
+const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com';
 
-// Helpers
+// ── Helpers ───────────────────────────────────────────────
 function phToday() {
-  // Uses whatever timezone the device is currently in. Saved timestamps are
-  // absolute (ISO strings), so opening the diary from a different timezone
-  // just shows "today" relative to wherever you are right now.
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,'0');
   const day = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
 }
-function phNow() {
-  return new Date();
-}
+function phNow() { return new Date(); }
 function uid() { return Math.random().toString(36).slice(2,9); }
 function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1121,7 +1172,6 @@ function fmtTime(dt) {
   return dt.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 }
 function relDateLabel(s) {
-  // s = 'YYYY-MM-DD'. Returns a friendly relative label vs today.
   const [y,m,d] = s.split('-').map(Number);
   const then = new Date(y,m-1,d);
   const t = new Date(); const today = new Date(t.getFullYear(),t.getMonth(),t.getDate());
@@ -1133,28 +1183,23 @@ function relDateLabel(s) {
   if (days >= 14 && days < 30) return `${Math.floor(days/7)} weeks ago`;
   if (days >= 30 && days < 60) return 'A month ago';
   if (days >= 60) return `${Math.floor(days/30)} months ago`;
-  if (days < 0) return fmtDate(s); // future dates: just show the date
+  if (days < 0) return fmtDate(s);
   return fmtDate(s);
 }
 function relDateTimeLabel(iso) {
-  // iso = full ISO datetime string. Same relative phrasing but for a doneAt timestamp.
   const dt = new Date(iso);
   const dateStr = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
   return relDateLabel(dateStr);
 }
 
 // ════════════════════════════════════════════════════════
-//  STORAGE — 5-page local cache, rest in Drive
-//  Audio/font/sfx blobs stored in separate localStorage keys
-//  so they don't bloat the main JSON or get silently dropped.
+//  STORAGE
 // ════════════════════════════════════════════════════════
 const MAX_LOCAL_PAGES = 5;
-const BLOB_PREFIX = 'diary_blob_';  // key: diary_blob_<id>
+const BLOB_PREFIX = 'diary_blob_';
 
 function blobKey(id) { return BLOB_PREFIX + id; }
 
-// Save a single blob (base64 dataURL) to its own localStorage key.
-// Returns true on success, false if it couldn't be saved (e.g. quota full).
 function saveBlob(id, data) {
   if (!data) return true;
   try { localStorage.setItem(blobKey(id), data); return true; } catch(e) {
@@ -1162,19 +1207,14 @@ function saveBlob(id, data) {
     return false;
   }
 }
-
-// Load a blob back from localStorage
 function loadBlob(id) {
   try { return localStorage.getItem(blobKey(id)); } catch(e) { return null; }
 }
-
-// Delete a blob key
 function deleteBlob(id) {
   try { localStorage.removeItem(blobKey(id)); } catch(e) {}
 }
 
-// Strip large blob fields from an object before putting it in main JSON,
-// storing them separately instead. Returns { stripped, failedCount }.
+// Returns { stripped, failedCount }
 function stripAndSaveBlobs(pages) {
   const stripped = {};
   let failedCount = 0;
@@ -1183,14 +1223,13 @@ function stripAndSaveBlobs(pages) {
       ...pg,
       recs: (pg.recs || []).map(r => {
         if (r.data && !saveBlob(r.id, r.data)) failedCount++;
-        return { ...r, data: null }; // strip from main JSON
+        return { ...r, data: null };
       })
     };
   }
   return { stripped, failedCount };
 }
 
-// Re-attach blobs to pages from localStorage
 function reattachBlobs(pages) {
   for (const pg of Object.values(pages)) {
     for (const r of (pg.recs || [])) {
@@ -1199,19 +1238,16 @@ function reattachBlobs(pages) {
   }
 }
 
-// Same for cfg blobs (fonts + sfx)
 function stripAndSaveCfgBlobs(cfg) {
   const c = { ...cfg };
-  // Fonts
   c.fonts = (cfg.fonts || []).map(f => {
     if (f.data) saveBlob('font_' + f.id, f.data);
     return { ...f, data: null };
   });
-  // SFX
   c.sfx = {};
   for (const [type, data] of Object.entries(cfg.sfx || {})) {
     if (data) saveBlob('sfx_' + type, data);
-    c.sfx[type] = null; // strip
+    c.sfx[type] = null;
   }
   return c;
 }
@@ -1240,9 +1276,9 @@ function persistLocal() {
     const localPages = {};
     for (const k of keepKeys) { if (S.pages[k]) localPages[k] = S.pages[k]; }
 
-    // Strip blobs from pages + cfg before storing in main JSON
-    const strippedPages = stripAndSaveBlobs(localPages);
-    const strippedCfg   = stripAndSaveCfgBlobs(S.cfg);
+    // ── FIX: destructure { stripped } — don't store the wrapper object as pages ──
+    const { stripped: strippedPages } = stripAndSaveBlobs(localPages);
+    const strippedCfg = stripAndSaveCfgBlobs(S.cfg);
 
     const payload = { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [] };
     localStorage.setItem(STORE, JSON.stringify(payload));
@@ -1262,17 +1298,19 @@ function load() {
     if (!raw) return;
     const p = JSON.parse(raw);
     S.pages = p.pages || {};
+    // Remove any stale non-date keys (e.g. "stripped", "failedCount") left by the old bug
+    for (const k of Object.keys(S.pages)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) delete S.pages[k];
+    }
     S.archivedKeys = p.archivedKeys || [];
     if (p.cfg) S.cfg = { ...S.cfg, ...p.cfg, drive: {...S.cfg.drive,...(p.cfg.drive||{})}, sfx: {...(p.cfg.sfx||{})} };
-    // Reattach blobs from their separate keys
     reattachBlobs(S.pages);
     reattachCfgBlobs(S.cfg);
   } catch(e) {}
 }
 
-// Load a specific page from Drive if not in local cache
 async function loadPageFromDrive(dateStr) {
-  if (S.pages[dateStr]) return S.pages[dateStr]; // already loaded
+  if (S.pages[dateStr]) return S.pages[dateStr];
   if (!S.cfg.drive?.on) return null;
   try {
     const fileId = S.cfg.drive.fileId;
@@ -1287,22 +1325,21 @@ async function loadPageFromDrive(dateStr) {
   return null;
 }
 
-// Page data
+// ── Page data ─────────────────────────────────────────────
 function page(d) {
   if (!S.pages[d]) S.pages[d] = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
   return S.pages[d];
 }
+
 function carryChecklist(d) {
   const pg = page(d);
-  // Build a set of srcIds already carried into this page
   const carried = new Set(pg.check.filter(i => i.carried).map(i => i.srcId));
   const toCarry = [];
-  // Walk all pages older than today and collect unchecked, not-yet-carried items
   Object.keys(S.pages).sort().forEach(prevDate => {
     if (prevDate >= d) return;
     (S.pages[prevDate].check || []).forEach(i => {
       if (!i.done && !carried.has(i.id)) {
-        carried.add(i.id); // prevent double-carrying same original item
+        carried.add(i.id);
         toCarry.push({ ...i, id: uid(), srcId: i.id, carried: true, carryFrom: prevDate,
           subtasks: (i.subtasks||[]).map(s=>({...s, id:uid()})) });
       }
@@ -1313,7 +1350,7 @@ function carryChecklist(d) {
   save();
 }
 
-// Render page
+// ── Render page ───────────────────────────────────────────
 function renderPage(d) {
   const pg = page(d);
   carryChecklist(d);
@@ -1360,19 +1397,14 @@ function hasContent(pg) {
 }
 function oldestAllowedDate() {
   const today = phToday();
-  // Today is always reachable even before anything's been written on it.
-  // Any other day only counts as a real boundary if it actually has content —
-  // otherwise it's just a blank page object created by visiting/rendering it.
   const withContent = Object.keys(S.pages)
     .filter(k => k === today || hasContent(S.pages[k]))
     .sort();
   return withContent.length ? withContent[0] : today;
 }
-function canGoPrev(d) {
-  return d > oldestAllowedDate();
-}
+function canGoPrev(d) { return d > oldestAllowedDate(); }
 
-// Important
+// ── Important ─────────────────────────────────────────────
 function renderImp(pg) {
   const el = document.getElementById('imp-list');
   el.innerHTML = (pg.imp||[]).map(i => `
@@ -1395,6 +1427,7 @@ function renderImp(pg) {
             onblur="updExplanation('${i.id}','imp',this.textContent)"
           >${esc(i.explanation||'')}</div>
         </div>
+        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','imp')">📝 Explain</button>` : ''}
       </div>
       <button class="imp-del" onclick="delImp('${i.id}')">×</button>
     </div>`).join('');
@@ -1417,7 +1450,7 @@ function delImp(id) {
   save(); renderImp(pg); setTimeout(syncDiaryHeight, 50);
 }
 
-// Checklist
+// ── Checklist ─────────────────────────────────────────────
 function renderCheck(pg) {
   const el = document.getElementById('check-list');
   el.innerHTML = (pg.check||[]).map(i => {
@@ -1432,6 +1465,7 @@ function renderCheck(pg) {
           onblur="updSubtask('${i.id}','${s.id}',this.textContent)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
         >${esc(s.text)}</div>
+        ${s.explanation ? `<span style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);flex-shrink:0;margin-left:4px;font-style:italic" title="${esc(s.explanation)}">💬</span>` : ''}
         <button class="subtask-del" onclick="delSubtask('${i.id}','${s.id}')">×</button>
       </div>
       ${s.explanation ? `<div class="subtask-expl">${esc(s.explanation)}</div>` : ''}
@@ -1448,7 +1482,7 @@ function renderCheck(pg) {
           >${esc(i.text)}</div>
           ${subsProg}
           ${i.time?`<span class="check-time">${esc(i.time)}</span>`:''}
-          ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();this.title='${esc(fmtDate(i.carryFrom))}';">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
+          ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
           ${i.done&&i.doneAt?`<span class="done-tag" title="${esc(fmtTime(new Date(i.doneAt)))}">done ${esc(relDateTimeLabel(i.doneAt))}</span>`:''}
           <div class="check-actions">
             <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','check')">💬</button>
@@ -1457,6 +1491,7 @@ function renderCheck(pg) {
           </div>
           <button class="check-del" onclick="delCheck('${i.id}')">×</button>
         </div>
+        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','check')">📝 Explain</button>` : ''}
         <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
           <div class="explanation-text" contenteditable="true" spellcheck="false"
             data-ph="Add an explanation..."
@@ -1475,7 +1510,8 @@ function renderCheck(pg) {
     </div>`;
   }).join('');
 }
-// Long-press support for carried/done date tags on mobile (title= doesn't show on touch)
+
+// Long-press for carried/done tags on mobile
 (function(){
   let pressTimer = null;
   function startPress(e) {
@@ -1492,8 +1528,8 @@ function renderCheck(pg) {
   document.addEventListener('touchmove', cancelPress);
   document.addEventListener('touchcancel', cancelPress);
 })();
-function focusAddCheck() { document.getElementById('check-input').focus(); }
 
+function focusAddCheck() { document.getElementById('check-input').focus(); }
 function addCheck() {
   const el = document.getElementById('check-input');
   const te = document.getElementById('check-time');
@@ -1513,8 +1549,6 @@ function findCheckItemById(id) {
   return null;
 }
 function collectChecklistChain(item) {
-  // Walks both directions (srcId backward, and forward to items carried FROM this one)
-  // to find every occurrence of the same logical task across all pages.
   const visited = new Set([item.id]);
   const result = [item];
   const queue = [item];
@@ -1603,6 +1637,8 @@ function toggleExplanation(id, kind) {
   const wrap = document.getElementById('expl-' + id); if (!wrap) return;
   const hidden = wrap.style.display === 'none';
   wrap.style.display = hidden ? '' : 'none';
+  const chip = document.getElementById('expl-chip-' + id);
+  if (chip) chip.classList.toggle('open', hidden);
   if (hidden) {
     const textEl = wrap.querySelector('.explanation-text');
     if (textEl) setTimeout(() => { textEl.focus(); }, 0);
@@ -1633,9 +1669,9 @@ Write a brief explanation (1-2 sentences) of why it matters or what action to ta
 Return JSON only, no markdown: {"explanation":"..."}`
     : `For this task: "${item.text}"
 1. Write a brief explanation (1-2 sentences) of what this task involves or why it matters.
-2. Generate 2-4 concrete subtasks to break it down.
+2. Generate 2-4 concrete subtasks to break it down. Each subtask can optionally have a short explanation.
 Return JSON only, no markdown:
-{"explanation":"...","subtasks":["subtask 1","subtask 2","subtask 3"]}`;
+{"explanation":"...","subtasks":[{"text":"subtask 1","explanation":"optional note"},{"text":"subtask 2","explanation":""}]}`;
 
   try {
     const body = {
@@ -1655,13 +1691,19 @@ Return JSON only, no markdown:
     if (parsed.explanation) item.explanation = parsed.explanation;
     if (!isImp && Array.isArray(parsed.subtasks) && parsed.subtasks.length) {
       if (!item.subtasks) item.subtasks = [];
-      parsed.subtasks.forEach(t => {
-        if (t?.trim()) item.subtasks.push({ id: uid(), text: t.trim(), done: false, at: new Date().toISOString() });
+      parsed.subtasks.forEach(s => {
+        // subtasks can be plain strings or {text, explanation} objects
+        const text = (typeof s === 'string' ? s : s?.text || '').trim();
+        const expl = (typeof s === 'object' ? s?.explanation || '' : '').trim();
+        if (text) item.subtasks.push({
+          id: uid(), text, done: false,
+          explanation: expl || null,
+          at: new Date().toISOString()
+        });
       });
     }
     save();
     if (isImp) renderImp(pg); else renderCheck(pg);
-    // Make sure explanation is visible
     const wrap = document.getElementById('expl-' + id);
     if (wrap && item.explanation) wrap.style.display = '';
     toast('✨ Done!');
@@ -1670,7 +1712,7 @@ Return JSON only, no markdown:
   }
 }
 
-// Diary
+// ── Diary ─────────────────────────────────────────────────
 function saveDiary() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
@@ -1679,10 +1721,17 @@ function saveDiary() {
   }, 500);
 }
 
-// Recordings
+// ════════════════════════════════════════════════════════
+//  RECORDINGS — full-featured cards
+// ════════════════════════════════════════════════════════
 function renderRecs(pg) {
   const el = document.getElementById('rec-list');
-  el.innerHTML = (pg.recs||[]).map(r => `
+  el.innerHTML = (pg.recs||[]).map(r => {
+    const hasAudio = !!r.data;
+    const wordCount = r.transcript
+      ? r.transcript.trim().split(/\s+/).filter(Boolean).length
+      : 0;
+    return `
     <div class="rec-card" id="rc-${r.id}">
       <div class="rec-name-row">
         🎙️
@@ -1690,31 +1739,102 @@ function renderRecs(pg) {
           onblur="updRec('${r.id}',this.textContent)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
         >${esc(r.name)}</div>
-        <button class="rec-del" onclick="delRec('${r.id}')">🗑</button>
+        <div class="rec-card-btns">
+          ${hasAudio
+            ? `<button class="rec-audio-del" onclick="delRecAudio('${r.id}')" title="Remove audio file">🗑 Audio</button>`
+            : ''}
+          <button class="rec-del" onclick="delRec('${r.id}')" title="Delete this recording">×</button>
+        </div>
       </div>
-      <audio class="rec-audio" controls src="${r.data}"></audio>
+      ${hasAudio
+        ? `<audio class="rec-audio" controls src="${r.data}"></audio>`
+        : `<div class="rec-no-audio">Audio removed — transcript preserved</div>`
+      }
       <div class="rec-meta">
         <span>📅 ${esc(r.time)}</span>
         <span>🎵 ${esc(r.file)}</span>
-        ${r.size?`<span>${(r.size/1024).toFixed(0)}KB</span>`:''}
+        ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
       </div>
-      ${r.transcript?`
-        <button class="rec-transcript-btn" onclick="toggleTx('${r.id}')">📄 Show transcript</button>
-        <div class="rec-transcript" id="tx-${r.id}">${esc(r.transcript)}</div>
-      `:''}
-    </div>`).join('');
+      <div class="rec-tx-header">
+        <button class="rec-transcript-btn" onclick="toggleTx('${r.id}')">
+          ${r.transcript ? '📄 Show transcript' : '📄 Add transcript'}
+        </button>
+        ${wordCount ? `<span class="rec-tx-words">${wordCount} words</span>` : ''}
+      </div>
+      <div class="rec-transcript" id="tx-${r.id}"
+        contenteditable="true" spellcheck="false"
+        onblur="updRecTranscript('${r.id}',this.textContent)"
+      >${esc(r.transcript||'')}</div>
+    </div>`;
+  }).join('');
 }
+
 function toggleTx(id) {
-  const el = document.getElementById('tx-'+id);
-  const btn = el?.previousElementSibling;
+  const el = document.getElementById('tx-' + id);
   if (!el) return;
+  const willOpen = !el.classList.contains('open');
   el.classList.toggle('open');
-  if (btn) btn.textContent = el.classList.contains('open') ? '📄 Hide transcript' : '📄 Show transcript';
+  // Update the button label
+  const card = el.closest('.rec-card');
+  const btn  = card?.querySelector('.rec-transcript-btn');
+  if (btn) {
+    const hasContent = (el.textContent||'').trim().length > 0;
+    if (willOpen) {
+      btn.textContent = '📄 Hide transcript';
+      setTimeout(() => el.focus(), 0);
+    } else {
+      btn.textContent = hasContent ? '📄 Show transcript' : '📄 Add transcript';
+    }
+  }
 }
+
 function updRec(id, name) {
   const r = page(curDate).recs.find(x=>x.id===id);
   if (r) { r.name = name.trim(); save(); }
 }
+
+function updRecTranscript(id, text) {
+  const r = page(curDate).recs.find(x=>x.id===id);
+  if (!r) return;
+  r.transcript = text.trim();
+  save();
+  // Refresh word count in-place without full re-render
+  const card = document.getElementById('rc-' + id);
+  if (card) {
+    let wc = card.querySelector('.rec-tx-words');
+    const words = r.transcript ? r.transcript.split(/\s+/).filter(Boolean).length : 0;
+    if (wc) {
+      wc.textContent = words ? words + ' words' : '';
+    } else if (words) {
+      // Create it next to the button
+      const header = card.querySelector('.rec-tx-header');
+      if (header) {
+        wc = document.createElement('span');
+        wc.className = 'rec-tx-words';
+        wc.textContent = words + ' words';
+        header.appendChild(wc);
+      }
+    }
+    // Update toggle button label
+    const btn = card.querySelector('.rec-transcript-btn');
+    if (btn && !btn.textContent.includes('Hide')) {
+      btn.textContent = r.transcript ? '📄 Show transcript' : '📄 Add transcript';
+    }
+  }
+}
+
+function delRecAudio(id) {
+  const r = page(curDate).recs.find(x=>x.id===id);
+  if (!r) return;
+  if (!confirm('Remove the audio file? The transcript and name will be kept.')) return;
+  r.data = null;
+  r.size = null;
+  deleteBlob(id);
+  save();
+  renderRecs(page(curDate));
+  toast('Audio removed — transcript kept');
+}
+
 function delRec(id) {
   const pg = page(curDate);
   pg.recs = pg.recs.filter(r=>r.id!==id);
@@ -1813,14 +1933,15 @@ async function geminiParse(transcript, recName, ph, key) {
     contents:[{parts:[{text:`You are a personal diary assistant. From this voice memo, extract:
 1. diary entry text (narrative, 1st person, natural)
 2. important things to remember (array of short strings)
-3. tasks/checklist items (array of {text, time, explanation, subtasks})
+3. tasks/checklist items (array of objects)
+   Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
    - "explanation" is optional: a 1-sentence note about what this task involves
-   - "subtasks" is optional: an array of strings for sub-steps, only if the task is complex
+   - "subtasks" is optional: only include if the task is complex; each subtask can also have an explanation
 
 Transcript: "${transcript}"
 
 Return JSON only, no markdown:
-{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":["..."]}]}`}]}],
+{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}`}]}],
     generationConfig:{responseMimeType:'application/json'}
   };
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
@@ -1839,13 +1960,20 @@ Return JSON only, no markdown:
     (parsed.important||[]).forEach(t => { if(t?.trim()) pg.imp.push({id:uid(),text:t.trim(),at:ph.toISOString()}); });
     (parsed.checklist||[]).forEach(i => {
       if (i?.text?.trim()) {
+        const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
         const newItem = {
           id:uid(), text:i.text.trim(), done:false,
           time:i.time||null, at:ph.toISOString(), carried:false,
           explanation: i.explanation?.trim()||null,
-          subtasks: Array.isArray(i.subtasks)
-            ? i.subtasks.filter(s=>s?.trim()).map(s=>({id:uid(),text:s.trim(),done:false,at:ph.toISOString()}))
-            : []
+          subtasks: rawSubs
+            .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
+            .map(s => ({
+              id: uid(),
+              text: (typeof s==='string' ? s : s.text).trim(),
+              explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
+              done: false,
+              at: ph.toISOString()
+            }))
         };
         pg.check.push(newItem);
       }
@@ -1854,11 +1982,9 @@ Return JSON only, no markdown:
   } catch(e) { console.warn(e); }
 }
 
-// Pages are now a fixed size (see #book height in CSS) and scroll internally
-// via overflow-y:auto on .page-body, so the book no longer grows with content.
-function syncDiaryHeight() { /* no-op: kept so existing call sites are harmless */ }
+function syncDiaryHeight() { /* no-op */ }
 
-
+// ── Navigation ────────────────────────────────────────────
 function navPage(dir) {
   const all = Object.keys(S.pages).sort();
   const idx = all.indexOf(curDate);
@@ -1903,7 +2029,7 @@ function flip(dir) {
   setTimeout(() => b.classList.remove(cls), 440);
 }
 
-// Clock
+// ── Clock ─────────────────────────────────────────────────
 function startClock() {
   function tick() {
     const el = document.getElementById('hdr-time');
@@ -1913,7 +2039,7 @@ function startClock() {
   setInterval(tick, 1000);
 }
 
-// Calendar
+// ── Calendar ──────────────────────────────────────────────
 function renderCal() {
   const y = calView.getFullYear(), m = calView.getMonth();
   const months = ['January','February','March','April','May','June',
@@ -1943,7 +2069,7 @@ function renderCal() {
 }
 function calMov(dir) { calView.setMonth(calView.getMonth()+dir); renderCal(); }
 
-// Modals
+// ── Modals ────────────────────────────────────────────────
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if (id==='cal-modal') renderCal();
@@ -1954,7 +2080,7 @@ document.querySelectorAll('.modal-back').forEach(el => {
   el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); });
 });
 
-// API Keys
+// ── API Keys ──────────────────────────────────────────────
 function activeKey() { return (S.cfg.keys.find(k=>k.active)||S.cfg.keys[0])?.key||null; }
 function addKey() {
   const lbl = document.getElementById('new-key-lbl').value.trim()||('Key '+(S.cfg.keys.length+1));
@@ -1985,7 +2111,7 @@ function renderKeys() {
   }).join('');
 }
 
-// Theme
+// ── Theme ─────────────────────────────────────────────────
 function setTheme(t) {
   S.cfg.theme = t; save();
   document.documentElement.setAttribute('data-theme', t==='default'?'':t);
@@ -1993,7 +2119,7 @@ function setTheme(t) {
   toast('Theme changed');
 }
 
-// Fonts
+// ── Fonts ─────────────────────────────────────────────────
 const BUILTIN = [
   {name:'Handwriting (Default)', css:'handwriting,cursive', builtin:true},
   {name:'Caveat',                css:"'Caveat',cursive",    builtin:true},
@@ -2037,7 +2163,7 @@ function renderFonts() {
     </div>`).join('');
 }
 
-// SFX
+// ── SFX ──────────────────────────────────────────────────
 function loadSfx(type, el) {
   const f = el.files[0]; if (!f) return;
   const r = new FileReader();
@@ -2063,14 +2189,16 @@ function restoreSfx() {
   });
 }
 
-// Line height
+// ── Line height ───────────────────────────────────────────
 function setLH(v) {
   S.cfg.lh = +v; save();
   document.documentElement.style.setProperty('--line-h', v+'px');
   document.getElementById('lh-val').textContent = v+'px';
 }
 
-// Drive
+// ════════════════════════════════════════════════════════
+//  GOOGLE DRIVE
+// ════════════════════════════════════════════════════════
 function renderDriveStatus() {
   const el = document.getElementById('drive-status'); if (!el) return;
   const d = S.cfg.drive || {};
@@ -2132,9 +2260,6 @@ function ensureTokenClient() {
   return true;
 }
 
-// IMPORTANT: this must be called with no preceding `await` in its call chain
-// so the resulting popup is still tied to the user's click (browsers block
-// popups not opened during direct user-gesture handling).
 let tokenRequestInFlight = false;
 function requestToken(promptStyle) {
   if (tokenRequestInFlight) return Promise.reject(new Error('token-request-already-in-flight'));
@@ -2152,7 +2277,6 @@ async function getValidToken(allowPrompt) {
     return driveToken.access_token;
   }
   if (!allowPrompt) return null;
-  // Use 'select_account' so the user sees the account picker; empty string can silently fail
   await requestToken('select_account');
   return driveToken.access_token || null;
 }
@@ -2222,8 +2346,6 @@ function queueDriveSync() {
   driveSyncTimer = setTimeout(() => { driveSyncTimer = null; syncNow({allowPrompt:false}); }, 4000);
 }
 
-// Flush a pending sync immediately if the tab is hidden or closing,
-// so quick edits right before closing the app aren't lost.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && driveSyncTimer) {
     clearTimeout(driveSyncTimer);
@@ -2244,19 +2366,15 @@ async function connectDrive() {
     console.log('[Drive] Token OK, expires at', new Date(driveToken.expiresAt).toISOString());
 
     let folderId = S.cfg.drive.folderId || await findOrCreateFolder(true);
-    console.log('[Drive] Folder ID:', folderId);
     S.cfg.drive.folderId = folderId;
 
     let fileId = S.cfg.drive.fileId || await findBackupFileId(true, folderId);
-    console.log('[Drive] Existing file ID:', fileId);
     S.cfg.drive.fileId = fileId || null;
     S.cfg.drive.on = true;
     delete S.cfg.drive.needsReconnect;
     persistLocal();
     renderDriveStatus();
 
-    // syncNow will reuse the token already in driveToken (no new popup)
-    console.log('[Drive] Starting sync…');
     await syncNow({ allowPrompt: true });
     toast('Connected to Google Drive ✓');
   } catch (e) {
@@ -2272,55 +2390,52 @@ async function syncNow(opts={}) {
     console.log('[Drive] syncNow start — allowPrompt:', allowPrompt);
     const token = await getValidToken(allowPrompt);
     if (!token) {
-      console.warn('[Drive] No token available');
       S.cfg.drive.needsReconnect = true;
       persistLocal(); renderDriveStatus();
       if (allowPrompt) toast('Session expired — reconnect Drive in Settings');
       return;
     }
-    console.log('[Drive] Token valid');
 
     let folderId = S.cfg.drive.folderId;
     if (!folderId) {
       folderId = await findOrCreateFolder(allowPrompt);
       S.cfg.drive.folderId = folderId;
-      console.log('[Drive] Created folder:', folderId);
     }
 
-    // Try to merge with Drive's full dataset
     let mergedPages = { ...S.pages };
     let drivePagesForFallback = null;
     console.log('[Drive] Local pages to upload:', Object.keys(mergedPages));
     try {
       const existingFileId = S.cfg.drive.fileId;
       if (existingFileId) {
-        console.log('[Drive] Downloading existing backup for merge, fileId:', existingFileId);
         const driveText = await downloadBackupFile(existingFileId, allowPrompt);
         const driveData = JSON.parse(driveText);
         if (driveData.pages) {
-          mergedPages = { ...driveData.pages, ...S.pages };
-          drivePagesForFallback = driveData.pages;
+          // Only merge real date-keyed pages from Drive
+          const drivePages = {};
+          for (const [k,v] of Object.entries(driveData.pages)) {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(k)) drivePages[k] = v;
+          }
+          mergedPages = { ...drivePages, ...S.pages };
+          drivePagesForFallback = drivePages;
           console.log('[Drive] After merge, total pages:', Object.keys(mergedPages).length);
         }
-        S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(driveData.pages||{})])];
+        S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(drivePagesForFallback||{})])];
       }
     } catch(e) {
       console.warn('[Drive] Merge read failed (proceeding with local only):', e.message);
     }
 
-    // Build full payload for Drive — reattach all blobs inline so Drive has complete data
     function pagesWithBlobs(pgs) {
       const out = {};
       for (const [date, pg] of Object.entries(pgs)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue; // skip any stale bad keys
         const driveRecs = drivePagesForFallback?.[date]?.recs || [];
         out[date] = {
           ...pg,
           recs: (pg.recs || []).map(r => {
             let data = r.data || loadBlob(r.id);
             if (!data) {
-              // The local copy of this recording's audio is gone (e.g. the
-              // browser's localStorage quota was hit when saving it). Don't
-              // let that null overwrite a good copy Drive already has.
               const match = driveRecs.find(dr => dr.id === r.id);
               data = match?.data || null;
             }
@@ -2350,13 +2465,10 @@ async function syncNow(opts={}) {
     console.log('[Drive] Uploading', content.length, 'bytes…');
     let fileId = S.cfg.drive.fileId;
     if (fileId) {
-      console.log('[Drive] Updating existing file:', fileId);
       await updateBackupFile(fileId, content, allowPrompt);
     } else {
-      console.log('[Drive] Creating new backup file in folder:', folderId);
       fileId = await createBackupFile(content, allowPrompt, folderId);
       S.cfg.drive.fileId = fileId;
-      console.log('[Drive] New file created:', fileId);
     }
     S.cfg.drive.lastSync = new Date().toISOString();
     delete S.cfg.drive.needsReconnect;
@@ -2386,10 +2498,13 @@ async function restoreFromDrive() {
     if (!imp.pages) { toast('Backup file looks invalid'); return; }
     if (confirm('Replace local diary with the Drive backup? This overwrites unsynced local changes.')) {
       S.pages = imp.pages;
+      // Remove any stale non-date keys
+      for (const k of Object.keys(S.pages)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) delete S.pages[k];
+      }
       const myDrive = S.cfg.drive;
       if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: myDrive };
       S.cfg.drive.fileId = fileId;
-      // Re-save all blobs from Drive data into their separate localStorage keys
       for (const pg of Object.values(S.pages)) {
         for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
       }
@@ -2412,7 +2527,6 @@ function openDriveFolder() {
   const fileId = S.cfg.drive?.fileId;
   const folderId = S.cfg.drive?.folderId;
   if (fileId) {
-    // Open the backup file directly — works with drive.file scope
     window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
   } else if (folderId) {
     window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
@@ -2432,7 +2546,7 @@ function disconnectDrive() {
   toast('Disconnected');
 }
 
-// Export / Import
+// ── Export / Import ───────────────────────────────────────
 function exportAll() {
   const b = new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(b);
@@ -2461,7 +2575,7 @@ function confirmClear() {
   }
 }
 
-// Settings render
+// ── Settings render ───────────────────────────────────────
 function renderSettings() {
   renderKeys(); renderFonts(); renderDriveStatus();
   document.getElementById('lh-slider').value = S.cfg.lh;
@@ -2470,7 +2584,7 @@ function renderSettings() {
   restoreSfx();
 }
 
-// Keyboard shortcuts
+// ── Keyboard shortcuts ────────────────────────────────────
 document.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const ce  = document.activeElement?.contentEditable;
@@ -2480,7 +2594,7 @@ document.addEventListener('keydown', e => {
   if (e.key==='t'||e.key==='T') goToToday();
 });
 
-// Restore custom fonts
+// ── Restore custom fonts ──────────────────────────────────
 function restoreFonts() {
   S.cfg.fonts.forEach(f => {
     const s = document.createElement('style');
@@ -2489,7 +2603,7 @@ function restoreFonts() {
   });
 }
 
-// Init
+// ── Init ──────────────────────────────────────────────────
 function init() {
   load();
   restoreFonts();

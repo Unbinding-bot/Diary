@@ -1008,6 +1008,7 @@ const DRIVE_SCOPE = IS_HTTPS
   : 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILENAME = 'my-diary-backup.json';
 const DRIVE_FOLDER_NAME = 'My Diary';
+const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com'; // ← paste your Client ID here
 
 // Helpers
 function phToday() {
@@ -1745,10 +1746,7 @@ function renderDriveStatus() {
     else b.style.display = d.on?'inline-flex':'none';
   });
   const cid = document.getElementById('drive-client-id');
-  if (cid) {
-    cid.style.display = d.on ? 'none' : '';
-    if (!d.on && !cid.value) cid.value = d.clientId || '';
-  }
+  if (cid) cid.style.display = 'none';
 }
 
 function ensureTokenClient() {
@@ -1876,9 +1874,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 async function connectDrive() {
-  const inputEl = document.getElementById('drive-client-id');
-  const cidVal = (inputEl?.value || S.cfg.drive?.clientId || '').trim();
-  if (!cidVal) { toast('Paste your Google OAuth Client ID first'); inputEl?.focus(); return; }
+  const cidVal = (MY_CLIENT_ID || S.cfg.drive?.clientId || '').trim();
+  if (!cidVal || cidVal === 'YOUR_CLIENT_ID_HERE') { toast('Add your Client ID to the top of the file first'); return; }
   if (!window.google?.accounts?.oauth2) { toast('Google sign-in script not loaded — check your connection'); return; }
   S.cfg.drive = { ...(S.cfg.drive||{}), clientId: cidVal };
   tokenClient = null;

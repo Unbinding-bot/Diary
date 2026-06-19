@@ -1003,6 +1003,7 @@ let sfxBufs   = {};
 let fontData  = null;
 let saveTimer = null;
 let driveSyncTimer = null;
+let silentRefreshTimer = null;
 let tokenClient = null;
 let tokenResolve = null, tokenReject = null;
 let driveToken = { access_token: null, expiresAt: 0 };
@@ -1825,8 +1826,10 @@ function renderDriveStatus() {
   }
   const chip = document.getElementById('drive-chip');
   if (chip) {
-    chip.textContent = d.on ? (d.needsReconnect ? '⚠️ Drive' : '☁️ Synced') : '';
+    chip.textContent = d.on ? (d.needsReconnect ? '⚠️ Drive (tap to fix)' : '☁️ Synced') : '';
     chip.style.display = d.on ? 'inline' : 'none';
+    chip.style.cursor = d.needsReconnect ? 'pointer' : 'default';
+    chip.onclick = d.needsReconnect ? () => syncNow({allowPrompt:true}) : null;
   }
   ['drive-con-btn','drive-sync-btn','drive-restore-btn','drive-folder-btn','drive-dis-btn'].forEach(id => {
     const b = document.getElementById(id);
@@ -1854,6 +1857,7 @@ function ensureTokenClient() {
       if (resp.error) { if (rej) rej(resp); return; }
       driveToken.access_token = resp.access_token;
       driveToken.expiresAt = Date.now() + ((resp.expires_in||3600)*1000) - 60000;
+      scheduleSilentRefresh();
       if (res) res(resp);
     },
     error_callback: (err) => {
@@ -1882,6 +1886,16 @@ async function getValidToken(allowPrompt) {
   if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
     return driveToken.access_token;
   }
+  // Always try a silent refresh first. If the browser still has an active
+  // Google session that previously granted access, this succeeds with NO
+  // popup at all — so background autosaves can keep renewing the token on
+  // their own instead of dying the moment the ~1hr access token expires.
+  try {
+    await requestToken('none');
+    if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
+      return driveToken.access_token;
+    }
+  } catch (e) { /* silent refresh wasn't possible — fall through below */ }
   if (!allowPrompt) return null;
   // Use 'select_account' so the user sees the account picker; empty string can silently fail
   await requestToken('select_account');
@@ -1951,6 +1965,22 @@ function queueDriveSync() {
   if (!S.cfg.drive?.on) return;
   clearTimeout(driveSyncTimer);
   driveSyncTimer = setTimeout(() => { driveSyncTimer = null; syncNow({allowPrompt:false}); }, 4000);
+}
+
+// Proactively renew the access token a few minutes before it expires, while
+// the diary is connected to Drive — so it stays fresh even during long
+// stretches with no edits, instead of waiting for the next save to discover
+// it's expired.
+function scheduleSilentRefresh() {
+  clearTimeout(silentRefreshTimer);
+  if (!S.cfg.drive?.on || !driveToken.expiresAt) return;
+  const lead = 5 * 60 * 1000;
+  const delay = Math.max(15000, driveToken.expiresAt - Date.now() - lead);
+  silentRefreshTimer = setTimeout(async () => {
+    try { await requestToken('none'); } catch (e) { /* will retry on next save attempt */ }
+    renderDriveStatus();
+    scheduleSilentRefresh();
+  }, delay);
 }
 
 // Flush a pending sync immediately if the tab is hidden or closing,
@@ -2140,6 +2170,7 @@ function openDriveFolder() {
 }
 
 function disconnectDrive() {
+  clearTimeout(silentRefreshTimer);
   if (driveToken.access_token && window.google?.accounts?.oauth2?.revoke) {
     google.accounts.oauth2.revoke(driveToken.access_token, () => {});
   }
@@ -2219,6 +2250,9 @@ function init() {
   page(curDate);
   renderPage(curDate);
   renderDriveStatus();
+  if (S.cfg.drive?.on) {
+    getValidToken(false).then(() => renderDriveStatus());
+  }
   startClock();
   setTimeout(() => {
     const l = document.getElementById('loading');

@@ -153,7 +153,7 @@ body {
 #book {
   display: flex;
   width: min(1160px, calc(100vw - 100px));
-  min-height: 820px;
+  height: 820px;
   border-radius: 3px 10px 10px 3px;
   box-shadow:
     -6px 6px 28px var(--shadow),
@@ -711,6 +711,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
   <div class="tb-title" onclick="goToToday()">📔 My Diary</div>
   <div class="tb-right">
     <span id="drive-chip"></span>
+    <button class="tb-btn" onclick="syncNow({allowPrompt:true})">🔄 Sync</button>
     <button class="tb-btn" onclick="openModal('cal-modal')">📅 Jump</button>
     <button class="tb-btn" onclick="openModal('set-modal')">⚙️ Settings</button>
   </div>
@@ -1494,18 +1495,9 @@ Return JSON only, no markdown:
   } catch(e) { console.warn(e); }
 }
 
-// Sync right page diary height to match left page total height
-function syncDiaryHeight() {
-  const leftBody = document.getElementById('left-body');
-  const rightBody = document.getElementById('right-body');
-  const diaryTa = document.getElementById('diary-ta');
-  if (!leftBody || !rightBody || !diaryTa) return;
-  // Let the left page dictate minimum height; right page matches via flex on #book
-  // The textarea inside fills right-body via flex:1
-  // Force a minimum height on right-body equal to left-body scrollHeight
-  const leftH = leftBody.scrollHeight;
-  rightBody.style.minHeight = leftH + 'px';
-}
+// Pages are now a fixed size (see #book height in CSS) and scroll internally
+// via overflow-y:auto on .page-body, so the book no longer grows with content.
+function syncDiaryHeight() { /* no-op: kept so existing call sites are harmless */ }
 
 
 function navPage(dir) {

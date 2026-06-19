@@ -346,6 +346,82 @@ body {
 .check-item:hover .check-del { opacity: 0.55; }
 .check-del:hover { opacity: 1 !important; }
 
+/* Check item inner layout */
+.check-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.check-text-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.check-actions {
+  display: flex; gap: 1px; opacity: 0; transition: opacity 0.18s; flex-shrink: 0; margin-left: auto;
+}
+.check-item:hover .check-actions { opacity: 1; }
+.check-action-btn {
+  background: none; border: none; cursor: pointer; font-size: 13px;
+  padding: 1px 4px; border-radius: 4px; opacity: 0.55; transition: all 0.15s;
+  line-height: 1; color: var(--ink2);
+}
+.check-action-btn:hover { opacity: 1; background: var(--accent-light); }
+
+/* Imp item inner layout */
+.imp-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.imp-text-row { display: flex; align-items: center; gap: 4px; }
+.imp-actions {
+  display: flex; gap: 1px; opacity: 0; transition: opacity 0.18s; flex-shrink: 0; margin-left: auto;
+}
+.imp-item:hover .imp-actions { opacity: 1; }
+
+/* Explanations */
+.explanation-wrap { margin-top: 3px; padding-left: 1px; }
+.explanation-text {
+  font-family: var(--font-ui); font-size: 12px; color: var(--ink3); font-style: italic;
+  outline: none; background: transparent; border: none; padding: 2px 5px; border-radius: 4px;
+  width: 100%; line-height: 1.5; display: block; min-height: 18px;
+  border-left: 2px solid var(--accent-light);
+}
+.explanation-text:empty::before { content: attr(data-ph); opacity: 0.5; }
+.explanation-text:focus { background: var(--paper2); color: var(--ink2); border-left-color: var(--accent); }
+
+/* Subtasks */
+.subtask-list {
+  margin-top: 5px; margin-left: 2px; display: flex; flex-direction: column; gap: 1px;
+  border-left: 2px solid var(--accent-light); padding-left: 8px;
+}
+.subtask-item {
+  display: flex; align-items: center; gap: 5px; padding: 2px 3px; border-radius: 5px;
+  transition: background 0.15s; font-family: var(--font-main); font-size: 15px; color: var(--ink);
+}
+.subtask-item:hover { background: var(--accent-light); }
+.subtask-box {
+  width: 14px !important; height: 14px !important; border: 1.5px solid var(--accent) !important;
+  border-radius: 3px; cursor: pointer; flex-shrink: 0;
+  background: transparent; transition: all 0.18s; display: flex; align-items: center; justify-content: center;
+}
+.subtask-item.done .subtask-box { background: var(--accent) !important; border-color: var(--accent) !important; }
+.subtask-item.done .subtask-box::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
+.subtask-item.done .subtask-text { text-decoration: line-through; color: var(--ink3); opacity: 0.6; }
+.subtask-text { flex: 1; outline: none; background: transparent; border: none; font: inherit; color: inherit; min-width: 0; }
+.subtask-expl {
+  font-size: 11px; color: var(--ink3); font-style: italic; font-family: var(--font-ui);
+  margin-top: 1px; padding-left: 19px; line-height: 1.4;
+}
+.subtask-del { opacity: 0; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; padding: 0 2px; transition: opacity 0.18s; }
+.subtask-item:hover .subtask-del { opacity: 0.5; }
+.subtask-del:hover { opacity: 1 !important; }
+.add-subtask-row {
+  display: flex; gap: 5px; align-items: center; padding: 3px 0; margin-top: 2px;
+}
+.add-subtask-input {
+  flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--line);
+  outline: none; font-family: var(--font-main); font-size: 14px; color: var(--ink);
+  padding: 1px 0; caret-color: var(--accent);
+}
+.add-subtask-input::placeholder { color: var(--ink3); opacity: 0.55; font-style: italic; }
+.add-subtask-input:focus { border-bottom-color: var(--accent); }
+.subtask-add-btn {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff;
+  border: none; cursor: pointer; font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s;
+}
+.subtask-add-btn:hover { background: var(--accent2); }
+
 /* Add-item rows */
 .add-row { display: flex; gap: 6px; align-items: center; padding: 3px 16px 8px 20px; }
 .add-input {
@@ -1227,7 +1303,8 @@ function carryChecklist(d) {
     (S.pages[prevDate].check || []).forEach(i => {
       if (!i.done && !carried.has(i.id)) {
         carried.add(i.id); // prevent double-carrying same original item
-        toCarry.push({ ...i, id: uid(), srcId: i.id, carried: true, carryFrom: prevDate });
+        toCarry.push({ ...i, id: uid(), srcId: i.id, carried: true, carryFrom: prevDate,
+          subtasks: (i.subtasks||[]).map(s=>({...s, id:uid()})) });
       }
     });
   });
@@ -1301,10 +1378,24 @@ function renderImp(pg) {
   el.innerHTML = (pg.imp||[]).map(i => `
     <div class="imp-item">
       <span class="imp-bullet">★</span>
-      <div class="imp-text" contenteditable="true" spellcheck="false"
-        onblur="updImp('${i.id}',this.textContent)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-      >${esc(i.text)}</div>
+      <div class="imp-main">
+        <div class="imp-text-row">
+          <div class="imp-text" contenteditable="true" spellcheck="false"
+            onblur="updImp('${i.id}',this.textContent)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${esc(i.text)}</div>
+          <div class="imp-actions">
+            <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','imp')">💬</button>
+            <button class="check-action-btn" title="AI explain" onclick="aiExplain('${i.id}','imp')">✨</button>
+          </div>
+        </div>
+        <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
+          <div class="explanation-text" contenteditable="true" spellcheck="false"
+            data-ph="Add an explanation..."
+            onblur="updExplanation('${i.id}','imp',this.textContent)"
+          >${esc(i.explanation||'')}</div>
+        </div>
+      </div>
       <button class="imp-del" onclick="delImp('${i.id}')">×</button>
     </div>`).join('');
 }
@@ -1329,18 +1420,60 @@ function delImp(id) {
 // Checklist
 function renderCheck(pg) {
   const el = document.getElementById('check-list');
-  el.innerHTML = (pg.check||[]).map(i => `
+  el.innerHTML = (pg.check||[]).map(i => {
+    const subs = i.subtasks || [];
+    const hasSubs = subs.length > 0;
+    const doneSubs = subs.filter(s => s.done).length;
+    const subsProg = hasSubs ? ` <span style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);flex-shrink:0">${doneSubs}/${subs.length}</span>` : '';
+    const subsHTML = subs.map(s => `
+      <div class="subtask-item${s.done?' done':''}">
+        <div class="subtask-box" onclick="toggleSubtask('${i.id}','${s.id}')"></div>
+        <div class="subtask-text" contenteditable="${s.done?'false':'true'}" spellcheck="false"
+          onblur="updSubtask('${i.id}','${s.id}',this.textContent)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${esc(s.text)}</div>
+        <button class="subtask-del" onclick="delSubtask('${i.id}','${s.id}')">×</button>
+      </div>
+      ${s.explanation ? `<div class="subtask-expl">${esc(s.explanation)}</div>` : ''}
+    `).join('');
+
+    return `
     <div class="check-item${i.done?' done':''}">
       <div class="check-box" onclick="toggleCheck('${i.id}')"></div>
-      <div class="check-text" contenteditable="${i.done?'false':'true'}" spellcheck="false"
-        onblur="updCheck('${i.id}',this.textContent)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-      >${esc(i.text)}</div>
-      ${i.time?`<span class="check-time">${esc(i.time)}</span>`:''}
-      ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();this.title='${esc(fmtDate(i.carryFrom))}';">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
-      ${i.done&&i.doneAt?`<span class="done-tag" title="${esc(fmtTime(new Date(i.doneAt)))}">done ${esc(relDateTimeLabel(i.doneAt))}</span>`:''}
-      <button class="check-del" onclick="delCheck('${i.id}')">×</button>
-    </div>`).join('');
+      <div class="check-main">
+        <div class="check-text-row">
+          <div class="check-text" contenteditable="${i.done?'false':'true'}" spellcheck="false"
+            onblur="updCheck('${i.id}',this.textContent)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${esc(i.text)}</div>
+          ${subsProg}
+          ${i.time?`<span class="check-time">${esc(i.time)}</span>`:''}
+          ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();this.title='${esc(fmtDate(i.carryFrom))}';">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
+          ${i.done&&i.doneAt?`<span class="done-tag" title="${esc(fmtTime(new Date(i.doneAt)))}">done ${esc(relDateTimeLabel(i.doneAt))}</span>`:''}
+          <div class="check-actions">
+            <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','check')">💬</button>
+            <button class="check-action-btn" title="Add subtask" onclick="showAddSubtask('${i.id}')">⊕</button>
+            <button class="check-action-btn" title="AI: explain + subtasks" onclick="aiExplain('${i.id}','check')">✨</button>
+          </div>
+          <button class="check-del" onclick="delCheck('${i.id}')">×</button>
+        </div>
+        <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
+          <div class="explanation-text" contenteditable="true" spellcheck="false"
+            data-ph="Add an explanation..."
+            onblur="updExplanation('${i.id}','check',this.textContent)"
+          >${esc(i.explanation||'')}</div>
+        </div>
+        <div class="subtask-list" id="subs-${i.id}" style="${hasSubs?'':'display:none'}">
+          ${subsHTML}
+          <div class="add-subtask-row" id="addsub-row-${i.id}" style="display:none">
+            <input class="add-subtask-input" id="addsub-${i.id}" placeholder="Add subtask…"
+              onkeydown="if(event.key==='Enter'){addSubtask('${i.id}');event.preventDefault()}">
+            <button class="subtask-add-btn" onclick="addSubtask('${i.id}')">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 // Long-press support for carried/done date tags on mobile (title= doesn't show on touch)
 (function(){
@@ -1422,6 +1555,119 @@ function clearDone() {
   const pg = page(curDate);
   pg.check = pg.check.filter(i=>!i.done);
   save(); renderCheck(pg); toast('Cleared completed tasks'); setTimeout(syncDiaryHeight, 50);
+}
+
+// ── Subtasks ──────────────────────────────────────────────
+function showAddSubtask(parentId) {
+  const list = document.getElementById('subs-' + parentId);
+  const row  = document.getElementById('addsub-row-' + parentId);
+  if (!list || !row) return;
+  list.style.display = '';
+  row.style.display  = '';
+  const inp = document.getElementById('addsub-' + parentId);
+  if (inp) setTimeout(() => inp.focus(), 0);
+}
+function addSubtask(parentId) {
+  const inp = document.getElementById('addsub-' + parentId);
+  if (!inp) return;
+  const text = inp.value.trim(); if (!text) return;
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item) return;
+  if (!item.subtasks) item.subtasks = [];
+  item.subtasks.push({ id: uid(), text, done: false, at: new Date().toISOString() });
+  save(); inp.value = ''; renderCheck(pg);
+}
+function toggleSubtask(parentId, subId) {
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  const sub  = item.subtasks.find(s => s.id === subId); if (!sub) return;
+  sub.done = !sub.done;
+  if (sub.done) sub.doneAt = new Date().toISOString(); else delete sub.doneAt;
+  save(); renderCheck(pg);
+  if (sub.done) playSfx('check');
+}
+function delSubtask(parentId, subId) {
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  item.subtasks = item.subtasks.filter(s => s.id !== subId);
+  save(); renderCheck(pg);
+}
+function updSubtask(parentId, subId, text) {
+  const item = page(curDate).check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  const sub  = item.subtasks.find(s => s.id === subId);
+  if (sub) { sub.text = text.trim(); save(); }
+}
+
+// ── Explanations ──────────────────────────────────────────
+function toggleExplanation(id, kind) {
+  const wrap = document.getElementById('expl-' + id); if (!wrap) return;
+  const hidden = wrap.style.display === 'none';
+  wrap.style.display = hidden ? '' : 'none';
+  if (hidden) {
+    const textEl = wrap.querySelector('.explanation-text');
+    if (textEl) setTimeout(() => { textEl.focus(); }, 0);
+  }
+}
+function updExplanation(id, kind, text) {
+  const pg = page(curDate);
+  const list = kind === 'imp' ? pg.imp : pg.check;
+  const item = list.find(x => x.id === id);
+  if (item) { item.explanation = text.trim(); save(); }
+}
+
+// ── AI: explain + subtasks ────────────────────────────────
+async function aiExplain(id, kind) {
+  const key = activeKey();
+  if (!key) { toast('Add a Gemini API key in Settings ⚙️'); return; }
+  const pg   = page(curDate);
+  const list = kind === 'imp' ? pg.imp : pg.check;
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  const isImp = kind === 'imp';
+  toast('✨ Asking Gemini…', 5000);
+
+  const prompt = isImp
+    ? `For this important note: "${item.text}"
+Write a brief explanation (1-2 sentences) of why it matters or what action to take.
+Return JSON only, no markdown: {"explanation":"..."}`
+    : `For this task: "${item.text}"
+1. Write a brief explanation (1-2 sentences) of what this task involves or why it matters.
+2. Generate 2-4 concrete subtasks to break it down.
+Return JSON only, no markdown:
+{"explanation":"...","subtasks":["subtask 1","subtask 2","subtask 3"]}`;
+
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API ${res.status}`); }
+    const d   = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+
+    if (parsed.explanation) item.explanation = parsed.explanation;
+    if (!isImp && Array.isArray(parsed.subtasks) && parsed.subtasks.length) {
+      if (!item.subtasks) item.subtasks = [];
+      parsed.subtasks.forEach(t => {
+        if (t?.trim()) item.subtasks.push({ id: uid(), text: t.trim(), done: false, at: new Date().toISOString() });
+      });
+    }
+    save();
+    if (isImp) renderImp(pg); else renderCheck(pg);
+    // Make sure explanation is visible
+    const wrap = document.getElementById('expl-' + id);
+    if (wrap && item.explanation) wrap.style.display = '';
+    toast('✨ Done!');
+  } catch (e) {
+    toast('AI error: ' + e.message);
+  }
 }
 
 // Diary
@@ -1567,12 +1813,14 @@ async function geminiParse(transcript, recName, ph, key) {
     contents:[{parts:[{text:`You are a personal diary assistant. From this voice memo, extract:
 1. diary entry text (narrative, 1st person, natural)
 2. important things to remember (array of short strings)
-3. tasks/checklist items (array of {text, time})
+3. tasks/checklist items (array of {text, time, explanation, subtasks})
+   - "explanation" is optional: a 1-sentence note about what this task involves
+   - "subtasks" is optional: an array of strings for sub-steps, only if the task is complex
 
 Transcript: "${transcript}"
 
 Return JSON only, no markdown:
-{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"..."}]}`}]}],
+{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":["..."]}]}`}]}],
     generationConfig:{responseMimeType:'application/json'}
   };
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
@@ -1589,7 +1837,19 @@ Return JSON only, no markdown:
       document.getElementById('diary-ta').value = pg.diary;
     }
     (parsed.important||[]).forEach(t => { if(t?.trim()) pg.imp.push({id:uid(),text:t.trim(),at:ph.toISOString()}); });
-    (parsed.checklist||[]).forEach(i => { if(i?.text?.trim()) pg.check.push({id:uid(),text:i.text.trim(),done:false,time:i.time||null,at:ph.toISOString(),carried:false}); });
+    (parsed.checklist||[]).forEach(i => {
+      if (i?.text?.trim()) {
+        const newItem = {
+          id:uid(), text:i.text.trim(), done:false,
+          time:i.time||null, at:ph.toISOString(), carried:false,
+          explanation: i.explanation?.trim()||null,
+          subtasks: Array.isArray(i.subtasks)
+            ? i.subtasks.filter(s=>s?.trim()).map(s=>({id:uid(),text:s.trim(),done:false,at:ph.toISOString()}))
+            : []
+        };
+        pg.check.push(newItem);
+      }
+    });
     save(); renderImp(pg); renderCheck(pg);
   } catch(e) { console.warn(e); }
 }

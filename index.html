@@ -1003,7 +1003,6 @@ let sfxBufs   = {};
 let fontData  = null;
 let saveTimer = null;
 let driveSyncTimer = null;
-let silentRefreshTimer = null;
 let tokenClient = null;
 let tokenResolve = null, tokenReject = null;
 let driveToken = { access_token: null, expiresAt: 0 };
@@ -1078,11 +1077,13 @@ const BLOB_PREFIX = 'diary_blob_';  // key: diary_blob_<id>
 
 function blobKey(id) { return BLOB_PREFIX + id; }
 
-// Save a single blob (base64 dataURL) to its own localStorage key
+// Save a single blob (base64 dataURL) to its own localStorage key.
+// Returns true on success, false if it couldn't be saved (e.g. quota full).
 function saveBlob(id, data) {
-  if (!data) return;
-  try { localStorage.setItem(blobKey(id), data); } catch(e) {
+  if (!data) return true;
+  try { localStorage.setItem(blobKey(id), data); return true; } catch(e) {
     console.warn('Could not save blob', id, '— storage full?');
+    return false;
   }
 }
 
@@ -1097,19 +1098,20 @@ function deleteBlob(id) {
 }
 
 // Strip large blob fields from an object before putting it in main JSON,
-// storing them separately instead
+// storing them separately instead. Returns { stripped, failedCount }.
 function stripAndSaveBlobs(pages) {
   const stripped = {};
+  let failedCount = 0;
   for (const [date, pg] of Object.entries(pages)) {
     stripped[date] = {
       ...pg,
       recs: (pg.recs || []).map(r => {
-        if (r.data) saveBlob(r.id, r.data);
+        if (r.data && !saveBlob(r.id, r.data)) failedCount++;
         return { ...r, data: null }; // strip from main JSON
       })
     };
   }
-  return stripped;
+  return { stripped, failedCount };
 }
 
 // Re-attach blobs to pages from localStorage
@@ -1857,7 +1859,6 @@ function ensureTokenClient() {
       if (resp.error) { if (rej) rej(resp); return; }
       driveToken.access_token = resp.access_token;
       driveToken.expiresAt = Date.now() + ((resp.expires_in||3600)*1000) - 60000;
-      scheduleSilentRefresh();
       if (res) res(resp);
     },
     error_callback: (err) => {
@@ -1874,10 +1875,14 @@ function ensureTokenClient() {
 // IMPORTANT: this must be called with no preceding `await` in its call chain
 // so the resulting popup is still tied to the user's click (browsers block
 // popups not opened during direct user-gesture handling).
+let tokenRequestInFlight = false;
 function requestToken(promptStyle) {
+  if (tokenRequestInFlight) return Promise.reject(new Error('token-request-already-in-flight'));
+  tokenRequestInFlight = true;
   return new Promise((resolve, reject) => {
-    if (!ensureTokenClient()) { reject(new Error('no-client-id')); return; }
-    tokenResolve = resolve; tokenReject = reject;
+    if (!ensureTokenClient()) { tokenRequestInFlight = false; reject(new Error('no-client-id')); return; }
+    tokenResolve = (v) => { tokenRequestInFlight = false; resolve(v); };
+    tokenReject  = (e) => { tokenRequestInFlight = false; reject(e); };
     tokenClient.requestAccessToken({ prompt: promptStyle });
   });
 }
@@ -1886,16 +1891,6 @@ async function getValidToken(allowPrompt) {
   if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
     return driveToken.access_token;
   }
-  // Always try a silent refresh first. If the browser still has an active
-  // Google session that previously granted access, this succeeds with NO
-  // popup at all — so background autosaves can keep renewing the token on
-  // their own instead of dying the moment the ~1hr access token expires.
-  try {
-    await requestToken('none');
-    if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
-      return driveToken.access_token;
-    }
-  } catch (e) { /* silent refresh wasn't possible — fall through below */ }
   if (!allowPrompt) return null;
   // Use 'select_account' so the user sees the account picker; empty string can silently fail
   await requestToken('select_account');
@@ -1967,22 +1962,6 @@ function queueDriveSync() {
   driveSyncTimer = setTimeout(() => { driveSyncTimer = null; syncNow({allowPrompt:false}); }, 4000);
 }
 
-// Proactively renew the access token a few minutes before it expires, while
-// the diary is connected to Drive — so it stays fresh even during long
-// stretches with no edits, instead of waiting for the next save to discover
-// it's expired.
-function scheduleSilentRefresh() {
-  clearTimeout(silentRefreshTimer);
-  if (!S.cfg.drive?.on || !driveToken.expiresAt) return;
-  const lead = 5 * 60 * 1000;
-  const delay = Math.max(15000, driveToken.expiresAt - Date.now() - lead);
-  silentRefreshTimer = setTimeout(async () => {
-    try { await requestToken('none'); } catch (e) { /* will retry on next save attempt */ }
-    renderDriveStatus();
-    scheduleSilentRefresh();
-  }, delay);
-}
-
 // Flush a pending sync immediately if the tab is hidden or closing,
 // so quick edits right before closing the app aren't lost.
 document.addEventListener('visibilitychange', () => {
@@ -2050,6 +2029,7 @@ async function syncNow(opts={}) {
 
     // Try to merge with Drive's full dataset
     let mergedPages = { ...S.pages };
+    let drivePagesForFallback = null;
     console.log('[Drive] Local pages to upload:', Object.keys(mergedPages));
     try {
       const existingFileId = S.cfg.drive.fileId;
@@ -2059,6 +2039,7 @@ async function syncNow(opts={}) {
         const driveData = JSON.parse(driveText);
         if (driveData.pages) {
           mergedPages = { ...driveData.pages, ...S.pages };
+          drivePagesForFallback = driveData.pages;
           console.log('[Drive] After merge, total pages:', Object.keys(mergedPages).length);
         }
         S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(driveData.pages||{})])];
@@ -2071,9 +2052,20 @@ async function syncNow(opts={}) {
     function pagesWithBlobs(pgs) {
       const out = {};
       for (const [date, pg] of Object.entries(pgs)) {
+        const driveRecs = drivePagesForFallback?.[date]?.recs || [];
         out[date] = {
           ...pg,
-          recs: (pg.recs || []).map(r => ({ ...r, data: r.data || loadBlob(r.id) || null }))
+          recs: (pg.recs || []).map(r => {
+            let data = r.data || loadBlob(r.id);
+            if (!data) {
+              // The local copy of this recording's audio is gone (e.g. the
+              // browser's localStorage quota was hit when saving it). Don't
+              // let that null overwrite a good copy Drive already has.
+              const match = driveRecs.find(dr => dr.id === r.id);
+              data = match?.data || null;
+            }
+            return { ...r, data: data || null };
+          })
         };
       }
       return out;
@@ -2170,7 +2162,6 @@ function openDriveFolder() {
 }
 
 function disconnectDrive() {
-  clearTimeout(silentRefreshTimer);
   if (driveToken.access_token && window.google?.accounts?.oauth2?.revoke) {
     google.accounts.oauth2.revoke(driveToken.access_token, () => {});
   }
@@ -2250,9 +2241,6 @@ function init() {
   page(curDate);
   renderPage(curDate);
   renderDriveStatus();
-  if (S.cfg.drive?.on) {
-    getValidToken(false).then(() => renderDriveStatus());
-  }
   startClock();
   setTimeout(() => {
     const l = document.getElementById('loading');

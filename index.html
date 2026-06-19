@@ -675,6 +675,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .cal-day.sel { background: var(--accent); color: #fff; }
 .cal-day.empty { cursor: default; pointer-events: none; }
 .cal-day.future { opacity: 0.25; pointer-events: none; }
+.cal-day.locked { opacity: 0.25; pointer-events: none; }
 
 /* Range slider */
 .range-row { display: flex; align-items: center; gap: 10px; }
@@ -1262,12 +1263,30 @@ function renderPage(d) {
   mt.style.display = notToday ? 'block' : 'none';
 
   document.getElementById('date-jump-input').value = d;
+  document.getElementById('date-jump-input').min = oldestAllowedDate();
+  document.getElementById('date-jump-input').max = today;
   document.getElementById('mob-date-input').value  = d;
+  document.getElementById('mob-date-input').min = oldestAllowedDate();
+  document.getElementById('mob-date-input').max = today;
 }
 
+function hasContent(pg) {
+  if (!pg) return false;
+  if ((pg.diary||'').trim()) return true;
+  if ((pg.imp||[]).length) return true;
+  if ((pg.check||[]).length) return true;
+  if ((pg.recs||[]).length) return true;
+  return false;
+}
 function oldestAllowedDate() {
-  const all = Object.keys(S.pages).sort();
-  return all.length ? all[0] : phToday();
+  const today = phToday();
+  // Today is always reachable even before anything's been written on it.
+  // Any other day only counts as a real boundary if it actually has content —
+  // otherwise it's just a blank page object created by visiting/rendering it.
+  const withContent = Object.keys(S.pages)
+    .filter(k => k === today || hasContent(S.pages[k]))
+    .sort();
+  return withContent.length ? withContent[0] : today;
 }
 function canGoPrev(d) {
   return d > oldestAllowedDate();
@@ -1642,6 +1661,7 @@ function renderCal() {
   const first = new Date(y,m,1).getDay();
   const days  = new Date(y,m+1,0).getDate();
   const today = phToday();
+  const oldest = oldestAllowedDate();
   const has   = new Set(Object.keys(S.pages));
   for (let i=0;i<first;i++) { const c=document.createElement('div'); c.className='cal-day empty'; grid.appendChild(c); }
   for (let d=1;d<=days;d++) {
@@ -1652,8 +1672,9 @@ function renderCal() {
     if (ds === today) cls += ' today';
     if (ds === curDate) cls += ' sel';
     if (ds > today)   cls += ' future';
+    if (ds < oldest)  cls += ' locked';
     c.className = cls; c.textContent = d;
-    if (ds <= today) c.onclick = () => jumpDate(ds);
+    if (ds <= today && ds >= oldest) c.onclick = () => jumpDate(ds);
     grid.appendChild(c);
   }
 }

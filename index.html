@@ -131,9 +131,9 @@ body {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: 28px 10px 24px;
+  padding: 16px 10px 16px;
   position: relative;
-  min-height: calc(100vh - 46px);
+  height: calc(100vh - 46px);
 }
 
 .page-arrow {
@@ -153,7 +153,7 @@ body {
 #book {
   display: flex;
   width: min(1160px, calc(100vw - 100px));
-  height: 820px;
+  height: 100%;
   border-radius: 3px 10px 10px 3px;
   box-shadow:
     -6px 6px 28px var(--shadow),
@@ -340,7 +340,8 @@ body {
 .check-item.done .check-text { text-decoration: line-through; color: var(--ink3); opacity: 0.6; }
 .check-text { flex: 1; outline: none; background: transparent; border: none; font: inherit; color: inherit; }
 .check-time { font-size: 11px; color: var(--ink3); font-family: var(--font-ui); flex-shrink: 0; padding-top: 5px; }
-.carried-tag { font-size: 10px; background: var(--accent-light); color: var(--accent2); padding: 1px 5px; border-radius: 8px; font-family: var(--font-ui); flex-shrink: 0; margin-top: 5px; }
+.carried-tag { font-size: 10px; background: var(--accent-light); color: var(--accent2); padding: 1px 5px; border-radius: 8px; font-family: var(--font-ui); flex-shrink: 0; margin-top: 5px; cursor: default; }
+.done-tag { font-size: 10px; background: var(--accent-light); color: var(--ink3); padding: 1px 5px; border-radius: 8px; font-family: var(--font-ui); flex-shrink: 0; margin-top: 5px; cursor: default; opacity: 0.85; }
 .check-del { opacity: 0; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 15px; padding: 0 2px; transition: opacity 0.18s; align-self: center; }
 .check-item:hover .check-del { opacity: 0.55; }
 .check-del:hover { opacity: 1 !important; }
@@ -472,10 +473,11 @@ body {
    MOBILE LAYOUT
 ══════════════════════════════════════════ */
 @media (max-width: 768px) {
-  #book-wrap { padding: 12px 0 80px; }
+  #book-wrap { padding: 12px 0 80px; height: auto; }
   #book {
     flex-direction: column;
     width: 100%;
+    height: auto;
     min-height: auto;
     border-radius: 0;
     box-shadow: none;
@@ -1041,6 +1043,28 @@ function fmtDate(s) {
 function fmtTime(dt) {
   return dt.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 }
+function relDateLabel(s) {
+  // s = 'YYYY-MM-DD'. Returns a friendly relative label vs today.
+  const [y,m,d] = s.split('-').map(Number);
+  const then = new Date(y,m-1,d);
+  const t = new Date(); const today = new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  const days = Math.round((today - then) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days > 1 && days < 7) return `${days} days ago`;
+  if (days >= 7 && days < 14) return 'A week ago';
+  if (days >= 14 && days < 30) return `${Math.floor(days/7)} weeks ago`;
+  if (days >= 30 && days < 60) return 'A month ago';
+  if (days >= 60) return `${Math.floor(days/30)} months ago`;
+  if (days < 0) return fmtDate(s); // future dates: just show the date
+  return fmtDate(s);
+}
+function relDateTimeLabel(iso) {
+  // iso = full ISO datetime string. Same relative phrasing but for a doneAt timestamp.
+  const dt = new Date(iso);
+  const dateStr = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  return relDateLabel(dateStr);
+}
 
 // ════════════════════════════════════════════════════════
 //  STORAGE — 5-page local cache, rest in Drive
@@ -1291,11 +1315,30 @@ function renderCheck(pg) {
         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
       >${esc(i.text)}</div>
       ${i.time?`<span class="check-time">${esc(i.time)}</span>`:''}
-      ${i.carried?`<span class="carried-tag">from ${esc(i.carryFrom)}</span>`:''}
+      ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();this.title='${esc(fmtDate(i.carryFrom))}';">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
+      ${i.done&&i.doneAt?`<span class="done-tag" title="${esc(fmtTime(new Date(i.doneAt)))}">done ${esc(relDateTimeLabel(i.doneAt))}</span>`:''}
       <button class="check-del" onclick="delCheck('${i.id}')">×</button>
     </div>`).join('');
 }
+// Long-press support for carried/done date tags on mobile (title= doesn't show on touch)
+(function(){
+  let pressTimer = null;
+  function startPress(e) {
+    const tag = e.target.closest?.('.carried-tag, .done-tag');
+    if (!tag) return;
+    pressTimer = setTimeout(() => {
+      const exact = tag.getAttribute('title');
+      if (exact) toast(exact, 2200);
+    }, 450);
+  }
+  function cancelPress() { clearTimeout(pressTimer); }
+  document.addEventListener('touchstart', startPress, {passive:true});
+  document.addEventListener('touchend', cancelPress);
+  document.addEventListener('touchmove', cancelPress);
+  document.addEventListener('touchcancel', cancelPress);
+})();
 function focusAddCheck() { document.getElementById('check-input').focus(); }
+
 function addCheck() {
   const el = document.getElementById('check-input');
   const te = document.getElementById('check-time');
@@ -1307,12 +1350,46 @@ function updCheck(id, text) {
   const i = page(curDate).check.find(x=>x.id===id);
   if (i) { i.text = text.trim(); save(); }
 }
+function findCheckItemById(id) {
+  for (const p of Object.values(S.pages)) {
+    const f = (p.check||[]).find(x => x.id === id);
+    if (f) return f;
+  }
+  return null;
+}
+function collectChecklistChain(item) {
+  // Walks both directions (srcId backward, and forward to items carried FROM this one)
+  // to find every occurrence of the same logical task across all pages.
+  const visited = new Set([item.id]);
+  const result = [item];
+  const queue = [item];
+  while (queue.length) {
+    const cur = queue.shift();
+    if (cur.srcId && !visited.has(cur.srcId)) {
+      const found = findCheckItemById(cur.srcId);
+      if (found) { visited.add(found.id); result.push(found); queue.push(found); }
+    }
+    Object.values(S.pages).forEach(p => {
+      (p.check||[]).forEach(it => {
+        if (it.srcId === cur.id && !visited.has(it.id)) {
+          visited.add(it.id); result.push(it); queue.push(it);
+        }
+      });
+    });
+  }
+  return result;
+}
 function toggleCheck(id) {
   const pg = page(curDate);
   const i = pg.check.find(x=>x.id===id); if (!i) return;
-  i.done = !i.done;
-  if (i.done) i.doneAt = new Date().toISOString();
-  save(); renderCheck(pg); if (i.done) playSfx('check');
+  const newDone = !i.done;
+  const now = new Date().toISOString();
+  const chain = collectChecklistChain(i);
+  chain.forEach(it => {
+    it.done = newDone;
+    if (newDone) it.doneAt = now; else delete it.doneAt;
+  });
+  save(); renderCheck(pg); if (newDone) playSfx('check');
 }
 function delCheck(id) {
   const pg = page(curDate);

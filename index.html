@@ -2604,7 +2604,7 @@ function restoreFonts() {
 }
 
 // ── Init ──────────────────────────────────────────────────
-function init() {
+async function init() {
   load();
   restoreFonts();
   restoreSfx();
@@ -2616,6 +2616,39 @@ function init() {
   renderPage(curDate);
   renderDriveStatus();
   startClock();
+
+  // Auto-pull from Drive on load if connected and local looks empty
+  if (S.cfg.drive?.on && S.cfg.drive?.fileId) {
+    const localEmpty = !hasContent(S.pages[curDate]) && Object.keys(S.pages).length <= 1;
+    if (localEmpty) {
+      const stat = document.getElementById('stt-status');
+      const prog = document.getElementById('stt-prog');
+      try {
+        if (stat) stat.textContent = 'Loading from Drive...';
+        if (prog) prog.classList.add('on');
+        const text = await downloadBackupFile(S.cfg.drive.fileId, false);
+        const imp = JSON.parse(text);
+        if (imp.pages) {
+          for (const [k,v] of Object.entries(imp.pages)) {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(k)) S.pages[k] = v;
+          }
+          if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: S.cfg.drive };
+          for (const pg of Object.values(S.pages)) {
+            for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
+          }
+          persistLocal();
+          renderPage(curDate);
+          renderDriveStatus();
+          toast('Loaded from Drive');
+        }
+      } catch(e) {
+        console.warn('[Init] Auto-load from Drive failed:', e.message);
+      } finally {
+        if (prog) prog.classList.remove('on');
+      }
+    }
+  }
+
   setTimeout(() => {
     const l = document.getElementById('loading');
     l.style.opacity='0';

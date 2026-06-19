@@ -504,6 +504,2553 @@ body {
   font-family: var(--font-main); font-size: 15px; font-weight: 600;
   color: var(--accent2); margin-bottom: 5px;
 }
+.rec-name-edit {
+  outline: none; background: transparent; border: none; font: inherit; color: inherit;
+  flex: 1; min-width: 0;
+}
+.rec-card-btns { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.rec-audio-del {
+  opacity: 0; background: none; border: 1px solid var(--line);
+  color: var(--ink3); padding: 2px 7px; border-radius: 6px; cursor: pointer;
+  font-size: 10px; font-family: var(--font-ui); transition: all 0.18s; white-space: nowrap;
+}
+.rec-card:hover .rec-audio-del { opacity: 1; }
+.rec-audio-del:hover { background: #fde8e8; border-color: #c0392b; color: #c0392b; }
+.rec-del {
+  opacity: 0; background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 18px; line-height: 1; padding: 0 2px; transition: opacity 0.18s;
+}
+.rec-card:hover .rec-del { opacity: 0.45; }
+.rec-del:hover { opacity: 1 !important; color: #c0392b; }
+.rec-no-audio {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+  font-style: italic; padding: 5px 2px; margin: 2px 0;
+  border: 1px dashed var(--line); border-radius: 6px; text-align: center;
+}
+.rec-audio { width: 100%; height: 32px; margin: 3px 0; }
+.rec-meta {
+  font-size: 10px; color: var(--ink3); font-family: var(--font-ui);
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px;
+}
+.rec-tx-header {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 7px;
+}
+.rec-transcript-btn {
+  background: none; border: 1px solid var(--line); color: var(--ink3);
+  padding: 2px 9px; border-radius: 8px; cursor: pointer;
+  font-size: 11px; font-family: var(--font-ui); transition: all 0.18s;
+}
+.rec-transcript-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.rec-tx-words { font-size: 10px; color: var(--ink3); font-family: var(--font-ui); }
+.rec-transcript {
+  background: var(--paper); border-left: 3px solid var(--accent-light);
+  padding: 7px 10px; border-radius: 0 6px 6px 0;
+  font-family: var(--font-main); font-size: 14px; color: var(--ink2);
+  line-height: 1.6; margin-top: 6px; display: none;
+  /* scroll */
+  max-height: 200px; overflow-y: auto;
+  /* editable */
+  outline: none; white-space: pre-wrap; word-break: break-word;
+}
+.rec-transcript.open { display: block; }
+.rec-transcript:focus { border-left-color: var(--accent); background: var(--paper); }
+.rec-transcript:empty::before { content: 'No transcript — click to type one…'; opacity: 0.4; font-style: italic; }
+
+/* ══════════════════════════════════════════
+   DESKTOP BOTTOM NAV BAR
+══════════════════════════════════════════ */
+#desk-subnav {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 0 0 28px;
+}
+#date-jump-input {
+  background: var(--paper); border: 1px solid var(--line); color: var(--ink);
+  padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  font-family: var(--font-ui);
+}
+.today-btn {
+  background: var(--accent); color: #fff; border: none;
+  padding: 7px 18px; border-radius: 18px; cursor: pointer;
+  font-size: 13px; font-family: var(--font-ui);
+  display: none; align-items: center; gap: 5px;
+  box-shadow: 0 2px 8px var(--shadow2); transition: all 0.18s;
+}
+.today-btn.show { display: flex; }
+.today-btn:hover { background: var(--accent2); }
+
+/* ══════════════════════════════════════════
+   MOBILE LAYOUT
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #book-wrap { padding: 12px 0 80px; height: auto; }
+  #book {
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  #book::before { display: none; }
+  #spine { display: none; }
+  #arrow-prev, #arrow-next { display: none; }
+
+  #page-left, #page-right {
+    border-radius: 0; border-right: none; border-left: none; border-bottom: 1px solid var(--line);
+  }
+  #page-left::before, #page-right::before { display: none; }
+  #book { display: flex; flex-direction: column; }
+  #page-right { order: 1; }
+  #page-left  { order: 2; }
+
+  .page-hdr { padding: 10px 14px 7px; }
+  .page-hdr-date { font-size: 20px; }
+  #page-right::before { display: none; }
+  .diary-wrap { padding: 6px 14px 12px 14px; }
+  .diary-ta { font-size: 17px; }
+  .sec-hdr { padding: 6px 14px 4px; }
+  .important-list, .check-list { padding: 4px 14px 8px; }
+  .imp-item, .check-item { font-size: 16px; }
+  .add-row { padding: 2px 14px 8px; }
+  .recordings-wrap { padding: 6px 14px 10px; }
+
+  #desk-subnav { display: none; }
+  #mobile-nav {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--cover);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    gap: 8px; align-items: center; z-index: 50;
+    box-shadow: 0 -2px 12px var(--shadow);
+  }
+  .mob-nav-btn {
+    background: rgba(255,255,255,0.15); color: #fff; border: none;
+    padding: 8px 0; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-family: var(--font-ui); flex: 1; text-align: center;
+    transition: background 0.18s;
+  }
+  .mob-nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+  .mob-nav-btn:not(:disabled):hover { background: rgba(255,255,255,0.26); }
+  .mob-today { background: rgba(255,255,255,0.28) !important; font-weight: 600; }
+  #mob-date-input {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    padding: 7px 6px; border-radius: 8px; font-size: 12px;
+    font-family: var(--font-ui); flex: 1.2; text-align: center;
+    -webkit-appearance: none; cursor: pointer;
+  }
+  #mob-date-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.7; }
+}
+
+@media (min-width: 769px) {
+  #mobile-nav { display: none !important; }
+  #desk-subnav { display: flex; }
+}
+
+/* ══════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════ */
+.modal-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.48);
+  z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-back.open { display: flex; }
+.modal {
+  background: var(--paper); border-radius: 14px; padding: 22px;
+  width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35); position: relative;
+}
+.modal h2 {
+  font-family: var(--font-main); font-size: 22px; color: var(--accent);
+  margin-bottom: 18px; display: flex; align-items: center; gap: 7px;
+}
+.modal-x {
+  position: absolute; top: 14px; right: 14px;
+  background: none; border: none; font-size: 22px; cursor: pointer;
+  color: var(--ink3); line-height: 1; transition: color 0.18s;
+}
+.modal-x:hover { color: var(--ink); }
+.set-sec {
+  margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px dashed var(--line);
+}
+.set-sec:last-child { border-bottom: none; margin-bottom: 0; }
+.set-sec h3 {
+  font-family: var(--font-main); font-size: 16px; color: var(--accent2);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
+}
+label { display: block; font-size: 11px; color: var(--ink3); margin-bottom: 3px; font-family: var(--font-ui); }
+input[type="text"], input[type="password"], select {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--line);
+  border-radius: 7px; font-size: 13px; font-family: var(--font-ui);
+  background: var(--paper2); color: var(--ink); transition: border 0.18s; margin-bottom: 7px;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+.btn {
+  padding: 7px 15px; border-radius: 7px; cursor: pointer; font-size: 13px;
+  font-family: var(--font-ui); border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink); transition: all 0.18s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn-danger { color: #c0392b; border-color: #c0392b; }
+.btn-danger:hover { background: #fde8e8; }
+.btn-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* API key list */
+.key-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--paper2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; margin-bottom: 5px;
+}
+.key-lbl { font-weight: 600; font-size: 12px; color: var(--ink); flex-shrink: 0; font-family: var(--font-ui); }
+.key-val { flex: 1; font-family: monospace; font-size: 11px; color: var(--ink3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.key-active-chip { font-size: 10px; background: var(--accent-light); color: var(--accent2); padding: 2px 6px; border-radius: 7px; flex-shrink: 0; font-family: var(--font-ui); }
+
+/* Theme grid */
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.theme-card {
+  border: 2px solid var(--line); border-radius: 9px; padding: 10px;
+  cursor: pointer; transition: all 0.18s; text-align: center;
+  font-size: 12px; font-family: var(--font-ui);
+}
+.theme-card:hover { border-color: var(--accent); transform: scale(1.02); }
+.theme-card.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+.theme-preview {
+  height: 34px; border-radius: 6px; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.theme-name { font-weight: 600; font-size: 13px; }
+.theme-sub { color: var(--ink3); font-size: 11px; }
+
+/* Font list */
+.font-item {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--paper2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; margin-bottom: 5px;
+}
+.font-name-lbl { flex-shrink: 0; font-size: 12px; color: var(--ink); font-family: var(--font-ui); min-width: 110px; }
+.font-preview-txt { flex: 1; font-size: 15px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.font-use-btn {
+  font-size: 11px; border: 1px solid var(--line); border-radius: 6px;
+  padding: 2px 8px; font-family: var(--font-ui); background: var(--paper);
+  color: var(--ink3); cursor: pointer; transition: all 0.18s; flex-shrink: 0;
+}
+.font-use-btn:hover, .font-use-btn.on { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* SFX items */
+.sfx-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--paper2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; margin-bottom: 5px;
+}
+.sfx-lbl { flex-shrink: 0; font-size: 12px; color: var(--ink); font-family: var(--font-ui); min-width: 90px; }
+.sfx-fname { flex: 1; font-size: 11px; color: var(--ink3); font-family: var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sfx-upload-btn { font-size: 11px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-family: var(--font-ui); background: var(--paper); color: var(--ink3); cursor: pointer; transition: all 0.18s; }
+.sfx-upload-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.sfx-test { background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 14px; transition: color 0.18s; }
+.sfx-test:hover { color: var(--accent); }
+
+/* Drive status */
+.drive-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 8px; font-size: 12px;
+  font-family: var(--font-ui); margin-bottom: 9px;
+}
+.drive-row.off { background: var(--paper2); color: var(--ink3); border: 1px solid var(--line); }
+.drive-row.on  { background: #e8f7ef; color: #1a7a4a; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot.green { background: #27ae60; animation: blink 2s ease infinite; }
+.dot.gray  { background: #bbb; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* Calendar */
+.cal-wrap { margin-top: 10px; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-nav span { font-family: var(--font-main); font-size: 18px; color: var(--accent); font-weight: 600; }
+.cal-nav button { background: none; border: 1px solid var(--line); border-radius: 7px; padding: 4px 11px; cursor: pointer; font-size: 16px; color: var(--ink); transition: all 0.18s; }
+.cal-nav button:hover { background: var(--accent-light); }
+.cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 3px; }
+.cal-wdays span { text-align: center; font-size: 11px; color: var(--ink3); font-family: var(--font-ui); }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font-ui);
+  color: var(--ink); transition: all 0.14s;
+}
+.cal-day:hover { background: var(--accent-light); color: var(--accent); }
+.cal-day.has { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+.cal-day.today { border: 2px solid var(--accent); }
+.cal-day.sel { background: var(--accent); color: #fff; }
+.cal-day.empty { cursor: default; pointer-events: none; }
+.cal-day.future { opacity: 0.25; pointer-events: none; }
+.cal-day.locked { opacity: 0.25; pointer-events: none; }
+
+/* Range slider */
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-row input[type=range] { flex: 1; }
+.range-val { font-size: 12px; color: var(--ink3); font-family: var(--font-ui); min-width: 36px; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(70px);
+  background: var(--cover); color: #fff; padding: 9px 20px; border-radius: 18px;
+  font-size: 13px; font-family: var(--font-ui); z-index: 999;
+  transition: transform 0.28s ease; white-space: nowrap;
+  box-shadow: 0 3px 14px var(--shadow); pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+@media (max-width: 768px) {
+  #toast { bottom: 80px; }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="book">📔</div>
+  <p>Opening your diary...</p>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="tb-title" onclick="goToToday()">📔 My Diary</div>
+  <div class="tb-right">
+    <span id="drive-chip"></span>
+    <button class="tb-btn" onclick="syncNow({allowPrompt:true})">🔄 Sync</button>
+    <button class="tb-btn" onclick="openModal('cal-modal')">📅 Jump</button>
+    <button class="tb-btn" onclick="openModal('set-modal')">⚙️ Settings</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="book-wrap">
+
+    <!-- Left arrow -->
+    <button class="page-arrow" id="arrow-prev" onclick="navPage(-1)">‹</button>
+
+    <!-- THE OPEN BOOK -->
+    <div id="book">
+
+      <!-- LEFT PAGE: Important + Checklist + Recordings -->
+      <div id="page-left" class="ruled-page">
+        <div class="page-hdr" id="left-hdr">
+          <div class="page-hdr-date" onclick="openModal('cal-modal')" id="hdr-date-l">...</div>
+          <div class="page-hdr-right">
+            <span class="page-hdr-time" id="hdr-time">--:--</span>
+            <span class="page-hdr-num" id="hdr-page-num">Page 1</span>
+          </div>
+        </div>
+        <div class="page-body" id="left-body">
+
+          <!-- Important -->
+          <div class="section" id="sec-imp">
+            <div class="sec-hdr">
+              <div class="sec-title">⭐ Important</div>
+              <div class="sec-actions">
+                <button class="sec-btn" onclick="focusAddImp()">+ Add</button>
+              </div>
+            </div>
+            <div class="important-list" id="imp-list"></div>
+            <div class="add-row">
+              <input class="add-input" id="imp-input" placeholder="Note something important..."
+                onkeydown="if(event.key==='Enter'){addImp();event.preventDefault()}">
+              <button class="add-btn" onclick="addImp()">+</button>
+            </div>
+          </div>
+
+          <!-- Checklist -->
+          <div class="section" id="sec-check">
+            <div class="sec-hdr">
+              <div class="sec-title">✅ Checklist</div>
+              <div class="sec-actions">
+                <button class="sec-btn" onclick="focusAddCheck()">+ Add</button>
+                <button class="sec-btn" onclick="clearDone()">Clear done</button>
+              </div>
+            </div>
+            <div class="check-list" id="check-list"></div>
+            <div class="add-row">
+              <input class="add-input" id="check-input" placeholder="Add a task..."
+                onkeydown="if(event.key==='Enter'){addCheck();event.preventDefault()}">
+              <input class="add-time" id="check-time" type="text" placeholder="time?">
+              <button class="add-btn" onclick="addCheck()">+</button>
+            </div>
+          </div>
+
+          <!-- Recordings -->
+          <div class="section" id="sec-rec">
+            <div class="sec-hdr">
+              <div class="sec-title">🎙️ Recordings</div>
+              <div class="sec-actions">
+                <div class="stt-btns">
+                  <button class="stt-btn on" data-m="gemini" onclick="setStt('gemini')">Gemini</button>
+                  <button class="stt-btn"    data-m="browser" onclick="setStt('browser')">Browser</button>
+                </div>
+              </div>
+            </div>
+            <div class="recordings-wrap" id="rec-wrap">
+              <div class="stt-prog" id="stt-prog">
+                <div class="spinner"></div>
+                <span id="stt-status">Processing...</span>
+              </div>
+              <div id="rec-list"></div>
+              <div class="upload-zone" id="upload-zone"
+                onclick="document.getElementById('audio-in').click()"
+                ondragover="dragOver(event)"
+                ondragleave="dragLeave(event)"
+                ondrop="dropAudio(event)">
+                <span class="uz-icon">🎵</span>
+                Tap to upload recording, or drag & drop<br>
+                <span style="font-size:10px;opacity:0.7;margin-top:2px;display:block">MP3 · M4A · WAV · OGG · WEBM</span>
+              </div>
+              <input type="file" id="audio-in" accept="audio/*" style="display:none" onchange="uploadAudio(this)">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Spine -->
+      <div id="spine"></div>
+
+      <!-- RIGHT PAGE: Diary / Today -->
+      <div id="page-right" class="ruled-page">
+        <div class="page-hdr">
+          <div class="page-hdr-date" id="hdr-date-r" onclick="openModal('cal-modal')">How was your day?</div>
+        </div>
+        <div class="page-body" id="right-body" style="display:flex;flex-direction:column;">
+          <div class="diary-wrap" style="flex:1;display:flex;flex-direction:column;">
+            <textarea class="diary-ta" id="diary-ta"
+              placeholder="Write about today... what happened, how you felt, what you're thinking about."
+              oninput="saveDiary()"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /book -->
+
+    <!-- Right arrow -->
+    <button class="page-arrow" id="arrow-next" onclick="navPage(1)">›</button>
+
+  </div><!-- /book-wrap -->
+
+  <!-- Desktop sub-nav -->
+  <div id="desk-subnav">
+    <button class="today-btn" id="today-btn-desk" onclick="goToToday()">📖 Go to Today</button>
+    <input type="date" id="date-jump-input" onchange="jumpDate(this.value)">
+  </div>
+
+  <!-- Mobile sticky nav -->
+  <div id="mobile-nav">
+    <button class="mob-nav-btn" id="mob-prev" onclick="navPage(-1)">‹ Prev</button>
+    <input type="date" id="mob-date-input" onchange="jumpDate(this.value)">
+    <button class="mob-nav-btn mob-today" id="mob-today" onclick="goToToday()" style="display:none">Today</button>
+    <button class="mob-nav-btn" id="mob-next" onclick="navPage(1)">Next ›</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Calendar Modal -->
+<div class="modal-back" id="cal-modal">
+  <div class="modal" style="max-width:320px">
+    <button class="modal-x" onclick="closeModal('cal-modal')">×</button>
+    <h2>📅 Jump to Date</h2>
+    <div class="cal-wrap">
+      <div class="cal-nav">
+        <button onclick="calMov(-1)">‹</button>
+        <span id="cal-lbl"></span>
+        <button onclick="calMov(1)">›</button>
+      </div>
+      <div class="cal-wdays">
+        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-back" id="set-modal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('set-modal')">×</button>
+    <h2>⚙️ Settings</h2>
+
+    <div class="set-sec">
+      <h3>🔑 API Keys (Gemini)</h3>
+      <div id="keys-list"></div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="text" id="new-key-lbl" placeholder="Label (Main, Backup…)" style="margin:0;flex:0 0 130px">
+        <input type="password" id="new-key-val" placeholder="AIza…" style="margin:0;flex:1">
+      </div>
+      <button class="btn btn-primary" onclick="addKey()">+ Add Key</button>
+    </div>
+
+    <div class="set-sec">
+      <h3>☁️ Google Drive</h3>
+      <div id="drive-status"></div>
+      <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID (xxxx.apps.googleusercontent.com)" style="margin-bottom:6px">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="drive-con-btn" onclick="connectDrive()">Connect Drive</button>
+        <button class="btn" id="drive-sync-btn" onclick="syncNow()" style="display:none">Sync Now</button>
+        <button class="btn" id="drive-restore-btn" onclick="restoreFromDrive()" style="display:none">Restore Latest</button>
+        <button class="btn" id="drive-folder-btn" onclick="openDriveFolder()" style="display:none">View Backup File</button>
+        <button class="btn btn-danger" id="drive-dis-btn" onclick="disconnectDrive()" style="display:none">Disconnect</button>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);font-family:var(--font-ui);margin-top:7px">Works offline — saves locally, backs up to a "My Diary" folder on Drive in the background while connected.</p>
+    </div>
+
+    <div class="set-sec">
+      <h3>🎨 Theme</h3>
+      <div class="theme-grid">
+        <div class="theme-card on" data-t="default" onclick="setTheme('default')">
+          <div class="theme-preview" style="background:#faf6ed;border:1px solid #ddd3b8">📜</div>
+          <div class="theme-name">Cream</div><div class="theme-sub">Classic notebook</div>
+        </div>
+        <div class="theme-card" data-t="dark" onclick="setTheme('dark')">
+          <div class="theme-preview" style="background:#18160f;color:#e4dcc8;border:1px solid #2c2920">🌙</div>
+          <div class="theme-name">Dark</div><div class="theme-sub">Night writing</div>
+        </div>
+        <div class="theme-card" data-t="white" onclick="setTheme('white')">
+          <div class="theme-preview" style="background:#fff;border:1px solid #ddd">☁️</div>
+          <div class="theme-name">Clean White</div><div class="theme-sub">Minimal</div>
+        </div>
+        <div class="theme-card" data-t="forest" onclick="setTheme('forest')">
+          <div class="theme-preview" style="background:#f2f5ee;border:1px solid #ccdac4">🌿</div>
+          <div class="theme-name">Forest</div><div class="theme-sub">Earthy surprise</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-sec">
+      <h3>✍️ Fonts</h3>
+      <div id="fonts-list"></div>
+      <div style="background:var(--paper2);border-radius:9px;padding:11px;margin-top:8px">
+        <label>Font name</label>
+        <input type="text" id="new-font-name" placeholder="e.g. My Handwriting">
+        <label>Font file (.ttf .otf .woff .woff2)</label>
+        <input type="file" id="font-file-in" accept=".ttf,.otf,.woff,.woff2" onchange="readFontFile(this)"
+          style="border:none;padding:0;background:transparent;color:var(--ink3);font-size:12px;margin-bottom:8px">
+        <button class="btn btn-primary" onclick="addFont()">+ Add Font</button>
+      </div>
+    </div>
+
+    <div class="set-sec">
+      <h3>🔊 Sound Effects</h3>
+      <div id="sfx-items">
+        <div class="sfx-item">
+          <span class="sfx-lbl">Page flip</span>
+          <span class="sfx-fname" id="sfx-flip-name">None</span>
+          <button class="sfx-upload-btn" onclick="document.getElementById('sfx-flip-in').click()">Upload</button>
+          <input type="file" id="sfx-flip-in" accept="audio/*" style="display:none" onchange="loadSfx('flip',this)">
+          <button class="sfx-test" onclick="testSfx('flip')">▶</button>
+        </div>
+        <div class="sfx-item">
+          <span class="sfx-lbl">Writing</span>
+          <span class="sfx-fname" id="sfx-write-name">None</span>
+          <button class="sfx-upload-btn" onclick="document.getElementById('sfx-write-in').click()">Upload</button>
+          <input type="file" id="sfx-write-in" accept="audio/*" style="display:none" onchange="loadSfx('write',this)">
+          <button class="sfx-test" onclick="testSfx('write')">▶</button>
+        </div>
+        <div class="sfx-item">
+          <span class="sfx-lbl">Check off</span>
+          <span class="sfx-fname" id="sfx-check-name">None</span>
+          <button class="sfx-upload-btn" onclick="document.getElementById('sfx-check-in').click()">Upload</button>
+          <input type="file" id="sfx-check-in" accept="audio/*" style="display:none" onchange="loadSfx('check',this)">
+          <button class="sfx-test" onclick="testSfx('check')">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-sec">
+      <h3>📐 Line Spacing</h3>
+      <div class="range-row">
+        <input type="range" min="28" max="50" value="34" id="lh-slider" oninput="setLH(this.value)">
+        <span class="range-val" id="lh-val">34px</span>
+      </div>
+    </div>
+
+    <div class="set-sec">
+      <h3>💾 Data</h3>
+      <div class="btn-row">
+        <button class="btn" onclick="exportAll()">⬇ Export</button>
+        <button class="btn" onclick="document.getElementById('import-in').click()">⬆ Import</button>
+        <input type="file" id="import-in" accept=".json" style="display:none" onchange="importAll(this)">
+        <button class="btn btn-danger" onclick="confirmClear()">🗑 Clear All</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DIARY APP — JavaScript
+// ════════════════════════════════════════════════════════
+
+const STORE = 'diary_v2';
+let S = {
+  pages: {},
+  archivedKeys: [],
+  cfg: {
+    theme: 'default', font: "'Caveat',cursive", lh: 34,
+    stt: 'gemini', keys: [], drive: {on:false}, sfx: {},
+    fonts: [], customBg: null
+  }
+};
+let curDate   = phToday();
+let calView   = new Date();
+let sfxBufs   = {};
+let fontData  = null;
+let saveTimer = null;
+let driveSyncTimer = null;
+let tokenClient = null;
+let tokenResolve = null, tokenReject = null;
+let driveToken = { access_token: null, expiresAt: 0 };
+const IS_HTTPS = location.protocol === 'https:';
+const DRIVE_SCOPE = IS_HTTPS
+  ? 'https://www.googleapis.com/auth/drive'
+  : 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_FILENAME = 'my-diary-backup.json';
+const DRIVE_FOLDER_NAME = 'My Diary';
+const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com'; // ← paste your Client ID here
+
+// Helpers
+function phToday() {
+  // Uses whatever timezone the device is currently in. Saved timestamps are
+  // absolute (ISO strings), so opening the diary from a different timezone
+  // just shows "today" relative to wherever you are right now.
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function phNow() {
+  return new Date();
+}
+function uid() { return Math.random().toString(36).slice(2,9); }
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, ms=2600) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+function fmtDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
+}
+function fmtTime(dt) {
+  return dt.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+function relDateLabel(s) {
+  // s = 'YYYY-MM-DD'. Returns a friendly relative label vs today.
+  const [y,m,d] = s.split('-').map(Number);
+  const then = new Date(y,m-1,d);
+  const t = new Date(); const today = new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  const days = Math.round((today - then) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days > 1 && days < 7) return `${days} days ago`;
+  if (days >= 7 && days < 14) return 'A week ago';
+  if (days >= 14 && days < 30) return `${Math.floor(days/7)} weeks ago`;
+  if (days >= 30 && days < 60) return 'A month ago';
+  if (days >= 60) return `${Math.floor(days/30)} months ago`;
+  if (days < 0) return fmtDate(s); // future dates: just show the date
+  return fmtDate(s);
+}
+function relDateTimeLabel(iso) {
+  // iso = full ISO datetime string. Same relative phrasing but for a doneAt timestamp.
+  const dt = new Date(iso);
+  const dateStr = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  return relDateLabel(dateStr);
+}
+
+// ════════════════════════════════════════════════════════
+//  STORAGE — 5-page local cache, rest in Drive
+//  Audio/font/sfx blobs stored in separate localStorage keys
+//  so they don't bloat the main JSON or get silently dropped.
+// ════════════════════════════════════════════════════════
+const MAX_LOCAL_PAGES = 5;
+const BLOB_PREFIX = 'diary_blob_';  // key: diary_blob_<id>
+
+function blobKey(id) { return BLOB_PREFIX + id; }
+
+// Save a single blob (base64 dataURL) to its own localStorage key.
+// Returns true on success, false if it couldn't be saved (e.g. quota full).
+function saveBlob(id, data) {
+  if (!data) return true;
+  try { localStorage.setItem(blobKey(id), data); return true; } catch(e) {
+    console.warn('Could not save blob', id, '— storage full?');
+    return false;
+  }
+}
+
+// Load a blob back from localStorage
+function loadBlob(id) {
+  try { return localStorage.getItem(blobKey(id)); } catch(e) { return null; }
+}
+
+// Delete a blob key
+function deleteBlob(id) {
+  try { localStorage.removeItem(blobKey(id)); } catch(e) {}
+}
+
+// Strip large blob fields from an object before putting it in main JSON,
+// storing them separately instead. Returns { stripped, failedCount }.
+function stripAndSaveBlobs(pages) {
+  const stripped = {};
+  let failedCount = 0;
+  for (const [date, pg] of Object.entries(pages)) {
+    stripped[date] = {
+      ...pg,
+      recs: (pg.recs || []).map(r => {
+        if (r.data && !saveBlob(r.id, r.data)) failedCount++;
+        return { ...r, data: null }; // strip from main JSON
+      })
+    };
+  }
+  return { stripped, failedCount };
+}
+
+// Re-attach blobs to pages from localStorage
+function reattachBlobs(pages) {
+  for (const pg of Object.values(pages)) {
+    for (const r of (pg.recs || [])) {
+      if (!r.data) r.data = loadBlob(r.id) || null;
+    }
+  }
+}
+
+// Same for cfg blobs (fonts + sfx)
+function stripAndSaveCfgBlobs(cfg) {
+  const c = { ...cfg };
+  // Fonts
+  c.fonts = (cfg.fonts || []).map(f => {
+    if (f.data) saveBlob('font_' + f.id, f.data);
+    return { ...f, data: null };
+  });
+  // SFX
+  c.sfx = {};
+  for (const [type, data] of Object.entries(cfg.sfx || {})) {
+    if (data) saveBlob('sfx_' + type, data);
+    c.sfx[type] = null; // strip
+  }
+  return c;
+}
+
+function reattachCfgBlobs(cfg) {
+  cfg.fonts = (cfg.fonts || []).map(f => ({ ...f, data: loadBlob('font_' + f.id) || f.data || null }));
+  const sfx = {};
+  for (const type of ['flip', 'write', 'check']) {
+    sfx[type] = loadBlob('sfx_' + type) || cfg.sfx?.[type] || null;
+  }
+  cfg.sfx = sfx;
+}
+
+function getRecentPageKeys() {
+  const today = phToday();
+  const all = Object.keys(S.pages).sort().reverse();
+  const keep = new Set();
+  keep.add(today);
+  for (const k of all) { if (keep.size >= MAX_LOCAL_PAGES) break; keep.add(k); }
+  return keep;
+}
+
+function persistLocal() {
+  try {
+    const keepKeys = getRecentPageKeys();
+    const localPages = {};
+    for (const k of keepKeys) { if (S.pages[k]) localPages[k] = S.pages[k]; }
+
+    // Strip blobs from pages + cfg before storing in main JSON
+    const strippedPages = stripAndSaveBlobs(localPages);
+    const strippedCfg   = stripAndSaveCfgBlobs(S.cfg);
+
+    const payload = { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [] };
+    localStorage.setItem(STORE, JSON.stringify(payload));
+  } catch(e) {
+    console.error('persistLocal failed:', e);
+  }
+}
+
+function save() {
+  persistLocal();
+  queueDriveSync();
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    S.pages = p.pages || {};
+    S.archivedKeys = p.archivedKeys || [];
+    if (p.cfg) S.cfg = { ...S.cfg, ...p.cfg, drive: {...S.cfg.drive,...(p.cfg.drive||{})}, sfx: {...(p.cfg.sfx||{})} };
+    // Reattach blobs from their separate keys
+    reattachBlobs(S.pages);
+    reattachCfgBlobs(S.cfg);
+  } catch(e) {}
+}
+
+// Load a specific page from Drive if not in local cache
+async function loadPageFromDrive(dateStr) {
+  if (S.pages[dateStr]) return S.pages[dateStr]; // already loaded
+  if (!S.cfg.drive?.on) return null;
+  try {
+    const fileId = S.cfg.drive.fileId;
+    if (!fileId) return null;
+    const text = await downloadBackupFile(fileId, false);
+    const full = JSON.parse(text);
+    if (full.pages?.[dateStr]) {
+      S.pages[dateStr] = full.pages[dateStr];
+      return S.pages[dateStr];
+    }
+  } catch(e) {}
+  return null;
+}
+
+// Page data
+function page(d) {
+  if (!S.pages[d]) S.pages[d] = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
+  return S.pages[d];
+}
+function carryChecklist(d) {
+  const pg = page(d);
+  // Build a set of srcIds already carried into this page
+  const carried = new Set(pg.check.filter(i => i.carried).map(i => i.srcId));
+  const toCarry = [];
+  // Walk all pages older than today and collect unchecked, not-yet-carried items
+  Object.keys(S.pages).sort().forEach(prevDate => {
+    if (prevDate >= d) return;
+    (S.pages[prevDate].check || []).forEach(i => {
+      if (!i.done && !carried.has(i.id)) {
+        carried.add(i.id); // prevent double-carrying same original item
+        toCarry.push({ ...i, id: uid(), srcId: i.id, carried: true, carryFrom: prevDate,
+          subtasks: (i.subtasks||[]).map(s=>({...s, id:uid()})) });
+      }
+    });
+  });
+  if (!toCarry.length) return;
+  pg.check = [...toCarry, ...pg.check.filter(i => !i.carried)];
+  save();
+}
+
+// Render page
+function renderPage(d) {
+  const pg = page(d);
+  carryChecklist(d);
+
+  const label = fmtDate(d);
+  document.getElementById('hdr-date-l').textContent = label;
+  document.getElementById('hdr-date-r').textContent = label;
+
+  const nums = Object.keys(S.pages).sort();
+  const idx  = nums.indexOf(d);
+  document.getElementById('hdr-page-num').textContent = 'Page ' + (idx >= 0 ? idx+1 : 1);
+
+  document.getElementById('diary-ta').value = pg.diary || '';
+
+  renderImp(pg); renderCheck(pg); renderRecs(pg);
+  setTimeout(syncDiaryHeight, 50);
+
+  const today = phToday();
+  document.getElementById('arrow-prev').disabled = !canGoPrev(d);
+  document.getElementById('arrow-next').disabled = d >= today;
+  document.getElementById('mob-prev').disabled    = !canGoPrev(d);
+  document.getElementById('mob-next').disabled    = d >= today;
+
+  const notToday = d !== today;
+  document.getElementById('today-btn-desk').classList.toggle('show', notToday);
+  const mt = document.getElementById('mob-today');
+  mt.style.display = notToday ? 'block' : 'none';
+
+  document.getElementById('date-jump-input').value = d;
+  document.getElementById('date-jump-input').min = oldestAllowedDate();
+  document.getElementById('date-jump-input').max = today;
+  document.getElementById('mob-date-input').value  = d;
+  document.getElementById('mob-date-input').min = oldestAllowedDate();
+  document.getElementById('mob-date-input').max = today;
+}
+
+function hasContent(pg) {
+  if (!pg) return false;
+  if ((pg.diary||'').trim()) return true;
+  if ((pg.imp||[]).length) return true;
+  if ((pg.check||[]).length) return true;
+  if ((pg.recs||[]).length) return true;
+  return false;
+}
+function oldestAllowedDate() {
+  const today = phToday();
+  // Today is always reachable even before anything's been written on it.
+  // Any other day only counts as a real boundary if it actually has content —
+  // otherwise it's just a blank page object created by visiting/rendering it.
+  const withContent = Object.keys(S.pages)
+    .filter(k => k === today || hasContent(S.pages[k]))
+    .sort();
+  return withContent.length ? withContent[0] : today;
+}
+function canGoPrev(d) {
+  return d > oldestAllowedDate();
+}
+
+// Important
+function renderImp(pg) {
+  const el = document.getElementById('imp-list');
+  el.innerHTML = (pg.imp||[]).map(i => `
+    <div class="imp-item">
+      <span class="imp-bullet">★</span>
+      <div class="imp-main">
+        <div class="imp-text-row">
+          <div class="imp-text" contenteditable="true" spellcheck="false"
+            onblur="updImp('${i.id}',this.textContent)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${esc(i.text)}</div>
+          <div class="imp-actions">
+            <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','imp')">💬</button>
+            <button class="check-action-btn" title="AI explain" onclick="aiExplain('${i.id}','imp')">✨</button>
+          </div>
+        </div>
+        <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
+          <div class="explanation-text" contenteditable="true" spellcheck="false"
+            data-ph="Add an explanation..."
+            onblur="updExplanation('${i.id}','imp',this.textContent)"
+          >${esc(i.explanation||'')}</div>
+        </div>
+      </div>
+      <button class="imp-del" onclick="delImp('${i.id}')">×</button>
+    </div>`).join('');
+}
+function focusAddImp() { document.getElementById('imp-input').focus(); }
+function addImp() {
+  const el = document.getElementById('imp-input');
+  const text = el.value.trim(); if (!text) return;
+  const pg = page(curDate);
+  pg.imp.push({ id:uid(), text, at: new Date().toISOString() });
+  save(); el.value = ''; renderImp(pg); setTimeout(syncDiaryHeight, 50);
+}
+function updImp(id, text) {
+  const i = page(curDate).imp.find(x=>x.id===id);
+  if (i) { i.text = text.trim(); save(); }
+}
+function delImp(id) {
+  const pg = page(curDate);
+  pg.imp = pg.imp.filter(i=>i.id!==id);
+  save(); renderImp(pg); setTimeout(syncDiaryHeight, 50);
+}
+
+// Checklist
+function renderCheck(pg) {
+  const el = document.getElementById('check-list');
+  el.innerHTML = (pg.check||[]).map(i => {
+    const subs = i.subtasks || [];
+    const hasSubs = subs.length > 0;
+    const doneSubs = subs.filter(s => s.done).length;
+    const subsProg = hasSubs ? ` <span style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);flex-shrink:0">${doneSubs}/${subs.length}</span>` : '';
+    const subsHTML = subs.map(s => `
+      <div class="subtask-item${s.done?' done':''}">
+        <div class="subtask-box" onclick="toggleSubtask('${i.id}','${s.id}')"></div>
+        <div class="subtask-text" contenteditable="${s.done?'false':'true'}" spellcheck="false"
+          onblur="updSubtask('${i.id}','${s.id}',this.textContent)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${esc(s.text)}</div>
+        <button class="subtask-del" onclick="delSubtask('${i.id}','${s.id}')">×</button>
+      </div>
+      ${s.explanation ? `<div class="subtask-expl">${esc(s.explanation)}</div>` : ''}
+    `).join('');
+
+    return `
+    <div class="check-item${i.done?' done':''}">
+      <div class="check-box" onclick="toggleCheck('${i.id}')"></div>
+      <div class="check-main">
+        <div class="check-text-row">
+          <div class="check-text" contenteditable="${i.done?'false':'true'}" spellcheck="false"
+            onblur="updCheck('${i.id}',this.textContent)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${esc(i.text)}</div>
+          ${subsProg}
+          ${i.time?`<span class="check-time">${esc(i.time)}</span>`:''}
+          ${i.carried?`<span class="carried-tag" title="${esc(fmtDate(i.carryFrom))}" oncontextmenu="event.preventDefault();this.title='${esc(fmtDate(i.carryFrom))}';">from ${esc(relDateLabel(i.carryFrom))}</span>`:''}
+          ${i.done&&i.doneAt?`<span class="done-tag" title="${esc(fmtTime(new Date(i.doneAt)))}">done ${esc(relDateTimeLabel(i.doneAt))}</span>`:''}
+          <div class="check-actions">
+            <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','check')">💬</button>
+            <button class="check-action-btn" title="Add subtask" onclick="showAddSubtask('${i.id}')">⊕</button>
+            <button class="check-action-btn" title="AI: explain + subtasks" onclick="aiExplain('${i.id}','check')">✨</button>
+          </div>
+          <button class="check-del" onclick="delCheck('${i.id}')">×</button>
+        </div>
+        <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
+          <div class="explanation-text" contenteditable="true" spellcheck="false"
+            data-ph="Add an explanation..."
+            onblur="updExplanation('${i.id}','check',this.textContent)"
+          >${esc(i.explanation||'')}</div>
+        </div>
+        <div class="subtask-list" id="subs-${i.id}" style="${hasSubs?'':'display:none'}">
+          ${subsHTML}
+          <div class="add-subtask-row" id="addsub-row-${i.id}" style="display:none">
+            <input class="add-subtask-input" id="addsub-${i.id}" placeholder="Add subtask…"
+              onkeydown="if(event.key==='Enter'){addSubtask('${i.id}');event.preventDefault()}">
+            <button class="subtask-add-btn" onclick="addSubtask('${i.id}')">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+// Long-press support for carried/done date tags on mobile (title= doesn't show on touch)
+(function(){
+  let pressTimer = null;
+  function startPress(e) {
+    const tag = e.target.closest?.('.carried-tag, .done-tag');
+    if (!tag) return;
+    pressTimer = setTimeout(() => {
+      const exact = tag.getAttribute('title');
+      if (exact) toast(exact, 2200);
+    }, 450);
+  }
+  function cancelPress() { clearTimeout(pressTimer); }
+  document.addEventListener('touchstart', startPress, {passive:true});
+  document.addEventListener('touchend', cancelPress);
+  document.addEventListener('touchmove', cancelPress);
+  document.addEventListener('touchcancel', cancelPress);
+})();
+function focusAddCheck() { document.getElementById('check-input').focus(); }
+
+function addCheck() {
+  const el = document.getElementById('check-input');
+  const te = document.getElementById('check-time');
+  const text = el.value.trim(); if (!text) return;
+  page(curDate).check.push({ id:uid(), text, done:false, time:te.value.trim()||null, at:new Date().toISOString(), carried:false });
+  save(); el.value=''; te.value=''; renderCheck(page(curDate)); setTimeout(syncDiaryHeight, 50);
+}
+function updCheck(id, text) {
+  const i = page(curDate).check.find(x=>x.id===id);
+  if (i) { i.text = text.trim(); save(); }
+}
+function findCheckItemById(id) {
+  for (const p of Object.values(S.pages)) {
+    const f = (p.check||[]).find(x => x.id === id);
+    if (f) return f;
+  }
+  return null;
+}
+function collectChecklistChain(item) {
+  // Walks both directions (srcId backward, and forward to items carried FROM this one)
+  // to find every occurrence of the same logical task across all pages.
+  const visited = new Set([item.id]);
+  const result = [item];
+  const queue = [item];
+  while (queue.length) {
+    const cur = queue.shift();
+    if (cur.srcId && !visited.has(cur.srcId)) {
+      const found = findCheckItemById(cur.srcId);
+      if (found) { visited.add(found.id); result.push(found); queue.push(found); }
+    }
+    Object.values(S.pages).forEach(p => {
+      (p.check||[]).forEach(it => {
+        if (it.srcId === cur.id && !visited.has(it.id)) {
+          visited.add(it.id); result.push(it); queue.push(it);
+        }
+      });
+    });
+  }
+  return result;
+}
+function toggleCheck(id) {
+  const pg = page(curDate);
+  const i = pg.check.find(x=>x.id===id); if (!i) return;
+  const newDone = !i.done;
+  const now = new Date().toISOString();
+  const chain = collectChecklistChain(i);
+  chain.forEach(it => {
+    it.done = newDone;
+    if (newDone) it.doneAt = now; else delete it.doneAt;
+  });
+  save(); renderCheck(pg); if (newDone) playSfx('check');
+}
+function delCheck(id) {
+  const pg = page(curDate);
+  pg.check = pg.check.filter(i=>i.id!==id);
+  save(); renderCheck(pg); setTimeout(syncDiaryHeight, 50);
+}
+function clearDone() {
+  const pg = page(curDate);
+  pg.check = pg.check.filter(i=>!i.done);
+  save(); renderCheck(pg); toast('Cleared completed tasks'); setTimeout(syncDiaryHeight, 50);
+}
+
+// ── Subtasks ──────────────────────────────────────────────
+function showAddSubtask(parentId) {
+  const list = document.getElementById('subs-' + parentId);
+  const row  = document.getElementById('addsub-row-' + parentId);
+  if (!list || !row) return;
+  list.style.display = '';
+  row.style.display  = '';
+  const inp = document.getElementById('addsub-' + parentId);
+  if (inp) setTimeout(() => inp.focus(), 0);
+}
+function addSubtask(parentId) {
+  const inp = document.getElementById('addsub-' + parentId);
+  if (!inp) return;
+  const text = inp.value.trim(); if (!text) return;
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item) return;
+  if (!item.subtasks) item.subtasks = [];
+  item.subtasks.push({ id: uid(), text, done: false, at: new Date().toISOString() });
+  save(); inp.value = ''; renderCheck(pg);
+}
+function toggleSubtask(parentId, subId) {
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  const sub  = item.subtasks.find(s => s.id === subId); if (!sub) return;
+  sub.done = !sub.done;
+  if (sub.done) sub.doneAt = new Date().toISOString(); else delete sub.doneAt;
+  save(); renderCheck(pg);
+  if (sub.done) playSfx('check');
+}
+function delSubtask(parentId, subId) {
+  const pg = page(curDate);
+  const item = pg.check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  item.subtasks = item.subtasks.filter(s => s.id !== subId);
+  save(); renderCheck(pg);
+}
+function updSubtask(parentId, subId, text) {
+  const item = page(curDate).check.find(x => x.id === parentId); if (!item?.subtasks) return;
+  const sub  = item.subtasks.find(s => s.id === subId);
+  if (sub) { sub.text = text.trim(); save(); }
+}
+
+// ── Explanations ──────────────────────────────────────────
+function toggleExplanation(id, kind) {
+  const wrap = document.getElementById('expl-' + id); if (!wrap) return;
+  const hidden = wrap.style.display === 'none';
+  wrap.style.display = hidden ? '' : 'none';
+  if (hidden) {
+    const textEl = wrap.querySelector('.explanation-text');
+    if (textEl) setTimeout(() => { textEl.focus(); }, 0);
+  }
+}
+function updExplanation(id, kind, text) {
+  const pg = page(curDate);
+  const list = kind === 'imp' ? pg.imp : pg.check;
+  const item = list.find(x => x.id === id);
+  if (item) { item.explanation = text.trim(); save(); }
+}
+
+// ── AI: explain + subtasks ────────────────────────────────
+async function aiExplain(id, kind) {
+  const key = activeKey();
+  if (!key) { toast('Add a Gemini API key in Settings ⚙️'); return; }
+  const pg   = page(curDate);
+  const list = kind === 'imp' ? pg.imp : pg.check;
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  const isImp = kind === 'imp';
+  toast('✨ Asking Gemini…', 5000);
+
+  const prompt = isImp
+    ? `For this important note: "${item.text}"
+Write a brief explanation (1-2 sentences) of why it matters or what action to take.
+Return JSON only, no markdown: {"explanation":"..."}`
+    : `For this task: "${item.text}"
+1. Write a brief explanation (1-2 sentences) of what this task involves or why it matters.
+2. Generate 2-4 concrete subtasks to break it down.
+Return JSON only, no markdown:
+{"explanation":"...","subtasks":["subtask 1","subtask 2","subtask 3"]}`;
+
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API ${res.status}`); }
+    const d   = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+
+    if (parsed.explanation) item.explanation = parsed.explanation;
+    if (!isImp && Array.isArray(parsed.subtasks) && parsed.subtasks.length) {
+      if (!item.subtasks) item.subtasks = [];
+      parsed.subtasks.forEach(t => {
+        if (t?.trim()) item.subtasks.push({ id: uid(), text: t.trim(), done: false, at: new Date().toISOString() });
+      });
+    }
+    save();
+    if (isImp) renderImp(pg); else renderCheck(pg);
+    // Make sure explanation is visible
+    const wrap = document.getElementById('expl-' + id);
+    if (wrap && item.explanation) wrap.style.display = '';
+    toast('✨ Done!');
+  } catch (e) {
+    toast('AI error: ' + e.message);
+  }
+}
+
+// Diary
+function saveDiary() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    page(curDate).diary = document.getElementById('diary-ta').value;
+    save(); playSfx('write');
+  }, 500);
+}
+
+// Recordings
+function renderRecs(pg) {
+  const el = document.getElementById('rec-list');
+  el.innerHTML = (pg.recs||[]).map(r => `
+    <div class="rec-card" id="rc-${r.id}">
+      <div class="rec-name-row">
+        🎙️
+        <div class="rec-name-edit" contenteditable="true" spellcheck="false"
+          onblur="updRec('${r.id}',this.textContent)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${esc(r.name)}</div>
+        <button class="rec-del" onclick="delRec('${r.id}')">🗑</button>
+      </div>
+      <audio class="rec-audio" controls src="${r.data}"></audio>
+      <div class="rec-meta">
+        <span>📅 ${esc(r.time)}</span>
+        <span>🎵 ${esc(r.file)}</span>
+        ${r.size?`<span>${(r.size/1024).toFixed(0)}KB</span>`:''}
+      </div>
+      ${r.transcript?`
+        <button class="rec-transcript-btn" onclick="toggleTx('${r.id}')">📄 Show transcript</button>
+        <div class="rec-transcript" id="tx-${r.id}">${esc(r.transcript)}</div>
+      `:''}
+    </div>`).join('');
+}
+function toggleTx(id) {
+  const el = document.getElementById('tx-'+id);
+  const btn = el?.previousElementSibling;
+  if (!el) return;
+  el.classList.toggle('open');
+  if (btn) btn.textContent = el.classList.contains('open') ? '📄 Hide transcript' : '📄 Show transcript';
+}
+function updRec(id, name) {
+  const r = page(curDate).recs.find(x=>x.id===id);
+  if (r) { r.name = name.trim(); save(); }
+}
+function delRec(id) {
+  const pg = page(curDate);
+  pg.recs = pg.recs.filter(r=>r.id!==id);
+  deleteBlob(id);
+  save(); renderRecs(pg);
+}
+
+function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+function dragLeave()  { document.getElementById('upload-zone').classList.remove('drag-over'); }
+function dropAudio(e) { e.preventDefault(); dragLeave(); const f=e.dataTransfer.files[0]; if(f?.type.startsWith('audio/')) procAudio(f); }
+function uploadAudio(el) { if(el.files[0]) procAudio(el.files[0]); el.value=''; }
+
+function setStt(m) {
+  S.cfg.stt = m; save();
+  document.querySelectorAll('.stt-btn').forEach(b => b.classList.toggle('on', b.dataset.m===m));
+}
+
+async function procAudio(file) {
+  const prog = document.getElementById('stt-prog');
+  const stat = document.getElementById('stt-status');
+  prog.classList.add('on');
+  try {
+    stat.textContent = 'Reading file...';
+    const data = await toDataUrl(file);
+    const ph   = phNow();
+    const time = ph.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true});
+    const recId = uid();
+    let transcript = '', name = 'Recording ' + (page(curDate).recs.length+1);
+
+    stat.textContent = 'Transcribing...';
+    const key = activeKey();
+    if (S.cfg.stt === 'gemini' && key) {
+      const r = await geminiSTT(file, data, key);
+      transcript = r.transcript || '';
+      if (r.name) name = r.name;
+    } else if (S.cfg.stt === 'browser') {
+      transcript = await browserSTT(file);
+    }
+
+    if (transcript && key) {
+      stat.textContent = 'Analyzing with Gemini...';
+      await geminiParse(transcript, name, ph, key);
+    }
+
+    page(curDate).recs.push({ id:recId, name, file:file.name, data, time, size:file.size, transcript, at:ph.toISOString() });
+    save(); renderRecs(page(curDate));
+    toast('🎙️ Recording added!');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  } finally {
+    prog.classList.remove('on');
+  }
+}
+
+function toDataUrl(file) {
+  return new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+}
+
+async function geminiSTT(file, dataUrl, key) {
+  const b64 = dataUrl.split(',')[1];
+  const body = {
+    model:'gemini-2.5-flash-lite',
+    contents:[{parts:[
+      {inline_data:{mime_type:file.type||'audio/mpeg',data:b64}},
+      {text:`Transcribe this audio. Then give a short descriptive name (3-6 words).
+Return JSON only, no markdown: {"transcript":"...","name":"..."}`}
+    ]}],
+    generationConfig:{responseMimeType:'application/json'}
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`API ${res.status}`); }
+  const d = await res.json();
+  const txt = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  try { return JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { return {transcript:txt,name:null}; }
+}
+
+async function browserSTT(file) {
+  return new Promise((res,rej) => {
+    const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+    if (!SR) { res('[Browser STT not supported — use Gemini]'); return; }
+    const r = new SR(); r.continuous=true; r.lang='en-PH';
+    const parts = [];
+    r.onresult = e => { for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) parts.push(e.results[i][0].transcript); };
+    r.onend = () => res(parts.join(' '));
+    r.onerror = e => rej(new Error('STT: '+e.error));
+    const a = new Audio(URL.createObjectURL(file));
+    a.onplay = ()=>r.start(); a.onended = ()=>r.stop();
+    a.play().catch(()=>rej(new Error('Cannot auto-play for browser STT. Use Gemini.')));
+  });
+}
+
+async function geminiParse(transcript, recName, ph, key) {
+  const body = {
+    model:'gemini-2.5-flash-lite',
+    contents:[{parts:[{text:`You are a personal diary assistant. From this voice memo, extract:
+1. diary entry text (narrative, 1st person, natural)
+2. important things to remember (array of short strings)
+3. tasks/checklist items (array of {text, time, explanation, subtasks})
+   - "explanation" is optional: a 1-sentence note about what this task involves
+   - "subtasks" is optional: an array of strings for sub-steps, only if the task is complex
+
+Transcript: "${transcript}"
+
+Return JSON only, no markdown:
+{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":["..."]}]}`}]}],
+    generationConfig:{responseMimeType:'application/json'}
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if (!res.ok) return;
+  const d = await res.json();
+  const txt = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  try {
+    const parsed = JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const pg = page(curDate);
+    if (parsed.diary) {
+      const sep = pg.diary ? '\n\n' : '';
+      pg.diary += sep + `[${recName}] ${parsed.diary}`;
+      document.getElementById('diary-ta').value = pg.diary;
+    }
+    (parsed.important||[]).forEach(t => { if(t?.trim()) pg.imp.push({id:uid(),text:t.trim(),at:ph.toISOString()}); });
+    (parsed.checklist||[]).forEach(i => {
+      if (i?.text?.trim()) {
+        const newItem = {
+          id:uid(), text:i.text.trim(), done:false,
+          time:i.time||null, at:ph.toISOString(), carried:false,
+          explanation: i.explanation?.trim()||null,
+          subtasks: Array.isArray(i.subtasks)
+            ? i.subtasks.filter(s=>s?.trim()).map(s=>({id:uid(),text:s.trim(),done:false,at:ph.toISOString()}))
+            : []
+        };
+        pg.check.push(newItem);
+      }
+    });
+    save(); renderImp(pg); renderCheck(pg);
+  } catch(e) { console.warn(e); }
+}
+
+// Pages are now a fixed size (see #book height in CSS) and scroll internally
+// via overflow-y:auto on .page-body, so the book no longer grows with content.
+function syncDiaryHeight() { /* no-op: kept so existing call sites are harmless */ }
+
+
+function navPage(dir) {
+  const all = Object.keys(S.pages).sort();
+  const idx = all.indexOf(curDate);
+  const oldest = oldestAllowedDate();
+  let next;
+  if (dir === -1) {
+    if (idx > 0) next = all[idx-1];
+    else {
+      const [y,m,d] = curDate.split('-').map(Number);
+      const candidate = new Date(y,m-1,d-1).toISOString().slice(0,10);
+      if (candidate >= oldest) next = candidate;
+    }
+  } else {
+    if (idx >= 0 && idx < all.length-1) next = all[idx+1];
+    else {
+      const [y,m,d] = curDate.split('-').map(Number);
+      const n = new Date(y,m-1,d+1).toISOString().slice(0,10);
+      if (n <= phToday()) next = n;
+    }
+  }
+  if (next && next <= phToday() && next >= oldest) {
+    playSfx('flip'); flip(dir);
+    setTimeout(() => { curDate = next; renderPage(curDate); }, 160);
+  }
+}
+function goToToday() {
+  if (curDate !== phToday()) {
+    playSfx('flip'); flip(1);
+    setTimeout(() => { curDate = phToday(); renderPage(curDate); }, 160);
+  }
+}
+function jumpDate(v) {
+  if (!v || v > phToday() || v < oldestAllowedDate()) return;
+  const dir = v > curDate ? 1 : -1;
+  playSfx('flip'); flip(dir);
+  setTimeout(() => { curDate = v; renderPage(curDate); closeModal('cal-modal'); }, 160);
+}
+function flip(dir) {
+  const b = document.getElementById('book');
+  const cls = dir>0 ? 'flip-next' : 'flip-prev';
+  b.classList.add(cls);
+  setTimeout(() => b.classList.remove(cls), 440);
+}
+
+// Clock
+function startClock() {
+  function tick() {
+    const el = document.getElementById('hdr-time');
+    if (el) el.textContent = fmtTime(phNow());
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// Calendar
+function renderCal() {
+  const y = calView.getFullYear(), m = calView.getMonth();
+  const months = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  document.getElementById('cal-lbl').textContent = `${months[m]} ${y}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  const first = new Date(y,m,1).getDay();
+  const days  = new Date(y,m+1,0).getDate();
+  const today = phToday();
+  const oldest = oldestAllowedDate();
+  const has   = new Set(Object.keys(S.pages));
+  for (let i=0;i<first;i++) { const c=document.createElement('div'); c.className='cal-day empty'; grid.appendChild(c); }
+  for (let d=1;d<=days;d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const c  = document.createElement('div');
+    let cls  = 'cal-day';
+    if (has.has(ds))  cls += ' has';
+    if (ds === today) cls += ' today';
+    if (ds === curDate) cls += ' sel';
+    if (ds > today)   cls += ' future';
+    if (ds < oldest)  cls += ' locked';
+    c.className = cls; c.textContent = d;
+    if (ds <= today && ds >= oldest) c.onclick = () => jumpDate(ds);
+    grid.appendChild(c);
+  }
+}
+function calMov(dir) { calView.setMonth(calView.getMonth()+dir); renderCal(); }
+
+// Modals
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id==='cal-modal') renderCal();
+  if (id==='set-modal') renderSettings();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-back').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); });
+});
+
+// API Keys
+function activeKey() { return (S.cfg.keys.find(k=>k.active)||S.cfg.keys[0])?.key||null; }
+function addKey() {
+  const lbl = document.getElementById('new-key-lbl').value.trim()||('Key '+(S.cfg.keys.length+1));
+  const val = document.getElementById('new-key-val').value.trim();
+  if (!val) { toast('Enter an API key'); return; }
+  S.cfg.keys.push({id:uid(),label:lbl,key:val,active:S.cfg.keys.length===0});
+  save(); document.getElementById('new-key-lbl').value=''; document.getElementById('new-key-val').value='';
+  renderKeys(); toast('Key added!');
+}
+function delKey(id) {
+  const was = S.cfg.keys.find(k=>k.id===id);
+  S.cfg.keys = S.cfg.keys.filter(k=>k.id!==id);
+  if (was?.active && S.cfg.keys.length) S.cfg.keys[0].active = true;
+  save(); renderKeys();
+}
+function setKey(id) { S.cfg.keys.forEach(k=>k.active=k.id===id); save(); renderKeys(); toast('Active key set'); }
+function renderKeys() {
+  const el = document.getElementById('keys-list'); if (!el) return;
+  if (!S.cfg.keys.length) { el.innerHTML='<p style="font-size:12px;color:var(--ink3);font-family:var(--font-ui);margin-bottom:8px">No keys yet.</p>'; return; }
+  el.innerHTML = S.cfg.keys.map(k => {
+    const masked = k.key.length>8 ? k.key.slice(0,4)+'••••'+k.key.slice(-4) : '••••';
+    return `<div class="key-item">
+      <span class="key-lbl">${esc(k.label)}</span>
+      <span class="key-val" title="${esc(k.key)}">${masked}</span>
+      ${k.active?`<span class="key-active-chip">✓ Active</span>`:`<button onclick="setKey('${k.id}')" style="font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--paper);cursor:pointer;color:var(--ink3)">Use</button>`}
+      <button onclick="delKey('${k.id}')" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;flex-shrink:0">×</button>
+    </div>`;
+  }).join('');
+}
+
+// Theme
+function setTheme(t) {
+  S.cfg.theme = t; save();
+  document.documentElement.setAttribute('data-theme', t==='default'?'':t);
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('on', c.dataset.t===t));
+  toast('Theme changed');
+}
+
+// Fonts
+const BUILTIN = [
+  {name:'Handwriting (Default)', css:'handwriting,cursive', builtin:true},
+  {name:'Caveat',                css:"'Caveat',cursive",    builtin:true},
+  {name:'Georgia',               css:'Georgia,serif',       builtin:true},
+  {name:'Courier New',           css:"'Courier New',monospace", builtin:true},
+  {name:'Arial',                 css:'Arial,sans-serif',    builtin:true},
+];
+function readFontFile(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => { fontData = e.target.result; };
+  r.readAsDataURL(f);
+}
+function addFont() {
+  const name = document.getElementById('new-font-name').value.trim();
+  if (!name) { toast('Enter a name'); return; }
+  if (!fontData) { toast('Upload a font file'); return; }
+  const style = document.createElement('style');
+  style.textContent = `@font-face{font-family:'${name}';src:url('${fontData}');}`;
+  document.head.appendChild(style);
+  S.cfg.fonts.push({id:uid(),name,css:`'${name}',cursive`,data:fontData});
+  save(); fontData=null;
+  document.getElementById('new-font-name').value='';
+  document.getElementById('font-file-in').value='';
+  renderFonts(); toast('Font added!');
+}
+function setFont(css, name) {
+  S.cfg.font = css; save(); applyFont(css); renderFonts(); toast('Font: '+name);
+}
+function applyFont(css) { document.documentElement.style.setProperty('--font-main', css); }
+function delFont(id) { deleteBlob('font_' + id); S.cfg.fonts=S.cfg.fonts.filter(f=>f.id!==id); save(); renderFonts(); }
+function renderFonts() {
+  const el = document.getElementById('fonts-list'); if (!el) return;
+  const all = [...BUILTIN, ...S.cfg.fonts];
+  el.innerHTML = all.map(f => `
+    <div class="font-item">
+      <span class="font-name-lbl">${esc(f.name)}</span>
+      <span class="font-preview-txt" style="font-family:${f.css}">Aa Dear Diary 📔</span>
+      <button class="font-use-btn${S.cfg.font===f.css?' on':''}" onclick="setFont('${f.css.replace(/'/g,"\\'")}','${esc(f.name)}')">${S.cfg.font===f.css?'✓':'Use'}</button>
+      ${!f.builtin?`<button onclick="delFont('${f.id}')" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px">×</button>`:''}
+    </div>`).join('');
+}
+
+// SFX
+function loadSfx(type, el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    S.cfg.sfx[type] = e.target.result;
+    sfxBufs[type] = new Audio(e.target.result);
+    save();
+    const n = document.getElementById('sfx-'+type+'-name');
+    if (n) n.textContent = f.name;
+    toast(type+' SFX loaded');
+  };
+  r.readAsDataURL(f);
+}
+function playSfx(type) {
+  if (sfxBufs[type]) { sfxBufs[type].currentTime=0; sfxBufs[type].play().catch(()=>{}); }
+}
+function testSfx(type) { if (sfxBufs[type]) playSfx(type); else toast('No '+type+' SFX loaded'); }
+function restoreSfx() {
+  ['flip','write','check'].forEach(t => {
+    if (S.cfg.sfx[t]) sfxBufs[t] = new Audio(S.cfg.sfx[t]);
+    const n = document.getElementById('sfx-'+t+'-name');
+    if (n) n.textContent = S.cfg.sfx[t] ? 'Loaded ✓' : 'None';
+  });
+}
+
+// Line height
+function setLH(v) {
+  S.cfg.lh = +v; save();
+  document.documentElement.style.setProperty('--line-h', v+'px');
+  document.getElementById('lh-val').textContent = v+'px';
+}
+
+// Drive
+function renderDriveStatus() {
+  const el = document.getElementById('drive-status'); if (!el) return;
+  const d = S.cfg.drive || {};
+  if (d.on && d.needsReconnect) {
+    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Session expired — click "Sync Now" to reconnect</div>`;
+  } else if (d.on) {
+    const when = d.lastSync ? new Date(d.lastSync).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}) : 'not yet';
+    const fileLink = d.fileId ? `<a href="https://drive.google.com/file/d/${d.fileId}/view" target="_blank" style="color:var(--accent);font-size:11px;display:block;margin-top:3px">📄 View backup file on Drive ↗</a>` : '';
+    const scopeNote = IS_HTTPS
+      ? ''
+      : `<p style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);margin:4px 0 0">Running on HTTP — using <code>drive.file</code> scope. The folder won't appear when browsing Drive normally, but your data is safely backed up via the link above. Host on HTTPS for full Drive visibility.</p>`;
+    el.innerHTML = `<div class="drive-row on"><div class="dot green"></div>Connected — last synced ${esc(when)}</div>${fileLink}${scopeNote}`;
+  } else {
+    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Not connected — data saved locally</div>`;
+  }
+  const chip = document.getElementById('drive-chip');
+  if (chip) {
+    chip.textContent = d.on ? (d.needsReconnect ? '⚠️ Drive (tap to fix)' : '☁️ Synced') : '';
+    chip.style.display = d.on ? 'inline' : 'none';
+    chip.style.cursor = d.needsReconnect ? 'pointer' : 'default';
+    chip.onclick = d.needsReconnect ? () => syncNow({allowPrompt:true}) : null;
+  }
+  ['drive-con-btn','drive-sync-btn','drive-restore-btn','drive-folder-btn','drive-dis-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (id==='drive-con-btn') b.style.display = d.on?'none':'inline-flex';
+    else if (id==='drive-folder-btn') b.style.display = (d.on && (d.fileId||d.folderId))?'inline-flex':'none';
+    else b.style.display = d.on?'inline-flex':'none';
+  });
+  const cid = document.getElementById('drive-client-id');
+  if (cid) cid.style.display = 'none';
+}
+
+function ensureTokenClient() {
+  const inputEl = document.getElementById('drive-client-id');
+  const cidVal = (inputEl?.value || S.cfg.drive?.clientId || '').trim();
+  if (!cidVal) return false;
+  if (tokenClient && tokenClient._cid === cidVal) return true;
+  if (!window.google?.accounts?.oauth2) return false;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: cidVal,
+    scope: DRIVE_SCOPE,
+    callback: (resp) => {
+      const res = tokenResolve, rej = tokenReject;
+      tokenResolve = null; tokenReject = null;
+      if (resp.error) { if (rej) rej(resp); return; }
+      driveToken.access_token = resp.access_token;
+      driveToken.expiresAt = Date.now() + ((resp.expires_in||3600)*1000) - 60000;
+      if (res) res(resp);
+    },
+    error_callback: (err) => {
+      const rej = tokenReject;
+      tokenResolve = null; tokenReject = null;
+      if (rej) rej(err);
+    }
+  });
+  tokenClient._cid = cidVal;
+  S.cfg.drive = { ...(S.cfg.drive||{}), clientId: cidVal };
+  return true;
+}
+
+// IMPORTANT: this must be called with no preceding `await` in its call chain
+// so the resulting popup is still tied to the user's click (browsers block
+// popups not opened during direct user-gesture handling).
+let tokenRequestInFlight = false;
+function requestToken(promptStyle) {
+  if (tokenRequestInFlight) return Promise.reject(new Error('token-request-already-in-flight'));
+  tokenRequestInFlight = true;
+  return new Promise((resolve, reject) => {
+    if (!ensureTokenClient()) { tokenRequestInFlight = false; reject(new Error('no-client-id')); return; }
+    tokenResolve = (v) => { tokenRequestInFlight = false; resolve(v); };
+    tokenReject  = (e) => { tokenRequestInFlight = false; reject(e); };
+    tokenClient.requestAccessToken({ prompt: promptStyle });
+  });
+}
+
+async function getValidToken(allowPrompt) {
+  if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
+    return driveToken.access_token;
+  }
+  if (!allowPrompt) return null;
+  // Use 'select_account' so the user sees the account picker; empty string can silently fail
+  await requestToken('select_account');
+  return driveToken.access_token || null;
+}
+
+async function driveFetch(url, opts={}, allowPrompt=true) {
+  const token = await getValidToken(allowPrompt);
+  if (!token) throw new Error('no-token');
+  const headers = Object.assign({}, opts.headers, { Authorization: 'Bearer ' + token });
+  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  if (!res.ok) {
+    const text = await res.text().catch(()=>'');
+    throw new Error('Drive API ' + res.status + ': ' + text);
+  }
+  return res;
+}
+
+async function findFolderId(allowPrompt) {
+  const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name)`, {}, allowPrompt);
+  const data = await res.json();
+  return data.files?.[0]?.id || null;
+}
+async function createFolder(allowPrompt) {
+  const metadata = { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' };
+  const res = await driveFetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(metadata)
+  }, allowPrompt);
+  return (await res.json()).id;
+}
+async function findOrCreateFolder(allowPrompt) {
+  let id = await findFolderId(allowPrompt);
+  if (!id) id = await createFolder(allowPrompt);
+  return id;
+}
+async function findBackupFileId(allowPrompt, folderId) {
+  const parentClause = folderId ? ` and '${folderId}' in parents` : '';
+  const q = encodeURIComponent(`name='${DRIVE_FILENAME}' and trashed=false${parentClause}`);
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,modifiedTime)`, {}, allowPrompt);
+  const data = await res.json();
+  return data.files?.[0]?.id || null;
+}
+async function createBackupFile(content, allowPrompt, folderId) {
+  const boundary = 'diaryBoundary' + Date.now();
+  const metadata = { name: DRIVE_FILENAME, mimeType: 'application/json' };
+  if (folderId) metadata.parents = [folderId];
+  const body =
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const res = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body
+  }, allowPrompt);
+  return (await res.json()).id;
+}
+async function updateBackupFile(fileId, content, allowPrompt) {
+  await driveFetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: content
+  }, allowPrompt);
+}
+async function downloadBackupFile(fileId, allowPrompt) {
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {}, allowPrompt);
+  return res.text();
+}
+
+function queueDriveSync() {
+  if (!S.cfg.drive?.on) return;
+  clearTimeout(driveSyncTimer);
+  driveSyncTimer = setTimeout(() => { driveSyncTimer = null; syncNow({allowPrompt:false}); }, 4000);
+}
+
+// Flush a pending sync immediately if the tab is hidden or closing,
+// so quick edits right before closing the app aren't lost.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && driveSyncTimer) {
+    clearTimeout(driveSyncTimer);
+    driveSyncTimer = null;
+    syncNow({allowPrompt:false});
+  }
+});
+
+async function connectDrive() {
+  const cidVal = (MY_CLIENT_ID || S.cfg.drive?.clientId || '').trim();
+  if (!cidVal || cidVal === 'YOUR_CLIENT_ID_HERE') { toast('Add your Client ID to the top of the file first'); return; }
+  if (!window.google?.accounts?.oauth2) { toast('Google sign-in script not loaded — check your connection'); return; }
+  S.cfg.drive = { ...(S.cfg.drive||{}), clientId: cidVal };
+  tokenClient = null;
+  try {
+    console.log('[Drive] Requesting token…');
+    await requestToken('consent');
+    console.log('[Drive] Token OK, expires at', new Date(driveToken.expiresAt).toISOString());
+
+    let folderId = S.cfg.drive.folderId || await findOrCreateFolder(true);
+    console.log('[Drive] Folder ID:', folderId);
+    S.cfg.drive.folderId = folderId;
+
+    let fileId = S.cfg.drive.fileId || await findBackupFileId(true, folderId);
+    console.log('[Drive] Existing file ID:', fileId);
+    S.cfg.drive.fileId = fileId || null;
+    S.cfg.drive.on = true;
+    delete S.cfg.drive.needsReconnect;
+    persistLocal();
+    renderDriveStatus();
+
+    // syncNow will reuse the token already in driveToken (no new popup)
+    console.log('[Drive] Starting sync…');
+    await syncNow({ allowPrompt: true });
+    toast('Connected to Google Drive ✓');
+  } catch (e) {
+    console.error('[Drive] connectDrive failed:', e);
+    toast('Could not connect — check the browser console for details');
+  }
+}
+
+async function syncNow(opts={}) {
+  const allowPrompt = opts.allowPrompt !== false;
+  if (!S.cfg.drive?.on) { if (allowPrompt) toast('Connect Drive first'); return; }
+  try {
+    console.log('[Drive] syncNow start — allowPrompt:', allowPrompt);
+    const token = await getValidToken(allowPrompt);
+    if (!token) {
+      console.warn('[Drive] No token available');
+      S.cfg.drive.needsReconnect = true;
+      persistLocal(); renderDriveStatus();
+      if (allowPrompt) toast('Session expired — reconnect Drive in Settings');
+      return;
+    }
+    console.log('[Drive] Token valid');
+
+    let folderId = S.cfg.drive.folderId;
+    if (!folderId) {
+      folderId = await findOrCreateFolder(allowPrompt);
+      S.cfg.drive.folderId = folderId;
+      console.log('[Drive] Created folder:', folderId);
+    }
+
+    // Try to merge with Drive's full dataset
+    let mergedPages = { ...S.pages };
+    let drivePagesForFallback = null;
+    console.log('[Drive] Local pages to upload:', Object.keys(mergedPages));
+    try {
+      const existingFileId = S.cfg.drive.fileId;
+      if (existingFileId) {
+        console.log('[Drive] Downloading existing backup for merge, fileId:', existingFileId);
+        const driveText = await downloadBackupFile(existingFileId, allowPrompt);
+        const driveData = JSON.parse(driveText);
+        if (driveData.pages) {
+          mergedPages = { ...driveData.pages, ...S.pages };
+          drivePagesForFallback = driveData.pages;
+          console.log('[Drive] After merge, total pages:', Object.keys(mergedPages).length);
+        }
+        S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(driveData.pages||{})])];
+      }
+    } catch(e) {
+      console.warn('[Drive] Merge read failed (proceeding with local only):', e.message);
+    }
+
+    // Build full payload for Drive — reattach all blobs inline so Drive has complete data
+    function pagesWithBlobs(pgs) {
+      const out = {};
+      for (const [date, pg] of Object.entries(pgs)) {
+        const driveRecs = drivePagesForFallback?.[date]?.recs || [];
+        out[date] = {
+          ...pg,
+          recs: (pg.recs || []).map(r => {
+            let data = r.data || loadBlob(r.id);
+            if (!data) {
+              // The local copy of this recording's audio is gone (e.g. the
+              // browser's localStorage quota was hit when saving it). Don't
+              // let that null overwrite a good copy Drive already has.
+              const match = driveRecs.find(dr => dr.id === r.id);
+              data = match?.data || null;
+            }
+            return { ...r, data: data || null };
+          })
+        };
+      }
+      return out;
+    }
+    function cfgWithBlobs(cfg) {
+      return {
+        ...cfg,
+        fonts: (cfg.fonts || []).map(f => ({ ...f, data: f.data || loadBlob('font_' + f.id) || null })),
+        sfx: {
+          flip:  cfg.sfx?.flip  || loadBlob('sfx_flip')  || null,
+          write: cfg.sfx?.write || loadBlob('sfx_write') || null,
+          check: cfg.sfx?.check || loadBlob('sfx_check') || null,
+        }
+      };
+    }
+
+    const content = JSON.stringify({
+      pages: pagesWithBlobs(mergedPages),
+      cfg: cfgWithBlobs(S.cfg),
+      archivedKeys: S.archivedKeys || []
+    });
+    console.log('[Drive] Uploading', content.length, 'bytes…');
+    let fileId = S.cfg.drive.fileId;
+    if (fileId) {
+      console.log('[Drive] Updating existing file:', fileId);
+      await updateBackupFile(fileId, content, allowPrompt);
+    } else {
+      console.log('[Drive] Creating new backup file in folder:', folderId);
+      fileId = await createBackupFile(content, allowPrompt, folderId);
+      S.cfg.drive.fileId = fileId;
+      console.log('[Drive] New file created:', fileId);
+    }
+    S.cfg.drive.lastSync = new Date().toISOString();
+    delete S.cfg.drive.needsReconnect;
+    persistLocal();
+    renderDriveStatus();
+    console.log('[Drive] Sync complete ✓');
+    if (allowPrompt) toast('Synced to Drive ✓');
+  } catch (e) {
+    console.error('[Drive] syncNow error:', e);
+    const justExpired = !S.cfg.drive.needsReconnect;
+    S.cfg.drive.needsReconnect = true;
+    persistLocal(); renderDriveStatus();
+    if (allowPrompt) toast('Sync failed — check browser console for details');
+    else if (justExpired) toast('Drive session expired — reconnect in Settings');
+  }
+}
+
+async function restoreFromDrive() {
+  if (!S.cfg.drive?.on) { toast('Connect Drive first'); return; }
+  try {
+    let folderId = S.cfg.drive.folderId || await findOrCreateFolder(true);
+    S.cfg.drive.folderId = folderId;
+    let fileId = S.cfg.drive.fileId || await findBackupFileId(true, folderId);
+    if (!fileId) { toast('No backup found on Drive yet'); return; }
+    const text = await downloadBackupFile(fileId, true);
+    const imp = JSON.parse(text);
+    if (!imp.pages) { toast('Backup file looks invalid'); return; }
+    if (confirm('Replace local diary with the Drive backup? This overwrites unsynced local changes.')) {
+      S.pages = imp.pages;
+      const myDrive = S.cfg.drive;
+      if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: myDrive };
+      S.cfg.drive.fileId = fileId;
+      // Re-save all blobs from Drive data into their separate localStorage keys
+      for (const pg of Object.values(S.pages)) {
+        for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
+      }
+      for (const f of (S.cfg.fonts || [])) { if (f.data) saveBlob('font_' + f.id, f.data); }
+      for (const [type, data] of Object.entries(S.cfg.sfx || {})) { if (data) saveBlob('sfx_' + type, data); }
+      persistLocal();
+      renderPage(curDate);
+      renderSettings();
+      restoreSfx();
+      restoreFonts();
+      toast('Restored from Drive!');
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Restore failed — open the console for details');
+  }
+}
+
+function openDriveFolder() {
+  const fileId = S.cfg.drive?.fileId;
+  const folderId = S.cfg.drive?.folderId;
+  if (fileId) {
+    // Open the backup file directly — works with drive.file scope
+    window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+  } else if (folderId) {
+    window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
+  } else {
+    toast('No Drive file yet — sync first');
+  }
+}
+
+function disconnectDrive() {
+  if (driveToken.access_token && window.google?.accounts?.oauth2?.revoke) {
+    google.accounts.oauth2.revoke(driveToken.access_token, () => {});
+  }
+  driveToken = { access_token: null, expiresAt: 0 };
+  S.cfg.drive = { on:false, clientId: S.cfg.drive?.clientId, fileId: S.cfg.drive?.fileId, folderId: S.cfg.drive?.folderId };
+  persistLocal();
+  renderDriveStatus();
+  toast('Disconnected');
+}
+
+// Export / Import
+function exportAll() {
+  const b = new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download=`diary-${phToday()}.json`; a.click(); toast('Exported!');
+}
+function importAll(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const imp = JSON.parse(e.target.result);
+      if (!imp.pages) { toast('Invalid file'); return; }
+      if (confirm('Merge imported data? Existing data kept.')) {
+        S.pages = {...S.pages,...imp.pages};
+        if (imp.cfg) S.cfg = {...S.cfg,...imp.cfg};
+        save(); renderPage(curDate); toast('Imported!');
+      }
+    } catch { toast('Invalid format'); }
+    el.value='';
+  };
+  r.readAsText(f);
+}
+function confirmClear() {
+  if (confirm('Delete ALL diary data? This cannot be undone.')) {
+    S.pages={}; save(); renderPage(curDate); toast('Cleared');
+  }
+}
+
+// Settings render
+function renderSettings() {
+  renderKeys(); renderFonts(); renderDriveStatus();
+  document.getElementById('lh-slider').value = S.cfg.lh;
+  document.getElementById('lh-val').textContent = S.cfg.lh+'px';
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('on', c.dataset.t===(S.cfg.theme||'default')));
+  restoreSfx();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement?.tagName;
+  const ce  = document.activeElement?.contentEditable;
+  if (tag==='INPUT'||tag==='TEXTAREA'||ce==='true') return;
+  if (e.key==='ArrowLeft')  navPage(-1);
+  if (e.key==='ArrowRight') navPage(1);
+  if (e.key==='t'||e.key==='T') goToToday();
+});
+
+// Restore custom fonts
+function restoreFonts() {
+  S.cfg.fonts.forEach(f => {
+    const s = document.createElement('style');
+    s.textContent = `@font-face{font-family:'${f.name}';src:url('${f.data}');}`;
+    document.head.appendChild(s);
+  });
+}
+
+// Init
+function init() {
+  load();
+  restoreFonts();
+  restoreSfx();
+  document.documentElement.setAttribute('data-theme', S.cfg.theme==='default'?'':S.cfg.theme||'');
+  applyFont(S.cfg.font||'handwriting,cursive');
+  setLH(S.cfg.lh||34);
+  setStt(S.cfg.stt||'gemini');
+  page(curDate);
+  renderPage(curDate);
+  renderDriveStatus();
+  startClock();
+  setTimeout(() => {
+    const l = document.getElementById('loading');
+    l.style.opacity='0';
+    setTimeout(()=>l.style.display='none',500);
+  }, 700);
+}
+
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(init);
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Diary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+@font-face {
+  font-family: handwriting;
+  src: url(font/hand2.woff2) format("woff2"),
+       url(font/hand2.woff) format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  --paper:        #faf6ed;
+  --paper2:       #f4eedf;
+  --paper3:       #ede5d0;
+  --ink:          #2c2416;
+  --ink2:         #5a4e3a;
+  --ink3:         #9a8a72;
+  --line:         #ddd3b8;
+  --accent:       #b85c38;
+  --accent2:      #7a3e24;
+  --accent-light: #f5e4d8;
+  --margin-line:  rgba(220,120,100,0.4);
+  --ruled-line:   rgba(180,160,130,0.45);
+  --cover:        #7a2e1c;
+  --cover2:       #5c2214;
+  --spine-bg:     #4a1a0e;
+  --shadow:       rgba(0,0,0,0.22);
+  --shadow2:      rgba(0,0,0,0.10);
+  --font-main:    handwriting, cursive;
+  --font-ui:      'Segoe UI', system-ui, sans-serif;
+  --line-h:       34px;
+  --trans:        0.28s ease;
+}
+[data-theme="dark"] {
+  --paper: #18160f; --paper2: #201d14; --paper3: #252218;
+  --ink: #e4dcc8; --ink2: #a89a82; --ink3: #6a6050;
+  --line: #2c2920; --accent: #d9724a; --accent2: #b05535;
+  --accent-light: #281a12; --margin-line: rgba(180,80,55,0.35);
+  --ruled-line: rgba(60,54,40,0.9);
+  --cover: #2a0e06; --cover2: #1e0904; --spine-bg: #120502;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+}
+[data-theme="white"] {
+  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
+  --ink: #111; --ink2: #444; --ink3: #999;
+  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
+  --accent-light: #e8f0fd; --margin-line: rgba(80,130,230,0.35);
+  --ruled-line: rgba(200,200,200,0.7);
+  --cover: #1a3f9e; --cover2: #0e2d7a; --spine-bg: #091e52;
+  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
+}
+[data-theme="forest"] {
+  --paper: #f2f5ee; --paper2: #e8ede2; --paper3: #dde4d5;
+  --ink: #1c2a18; --ink2: #3e5438; --ink3: #6e8865;
+  --line: #ccdac4; --accent: #3d7a38; --accent2: #285024;
+  --accent-light: #dceedd; --margin-line: rgba(80,160,75,0.35);
+  --ruled-line: rgba(160,195,150,0.5);
+  --cover: #1e4a1a; --cover2: #153513; --spine-bg: #0e2410;
+  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--paper3);
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  transition: background var(--trans), color var(--trans);
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════
+   LOADING
+══════════════════════════════════════════ */
+#loading {
+  position: fixed; inset: 0; background: var(--cover);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999; gap: 12px; transition: opacity 0.5s ease;
+}
+#loading .book { font-size: 56px; animation: bob 1.4s ease-in-out infinite; }
+#loading p { color: rgba(255,255,255,0.75); font-size: 13px; font-family: var(--font-ui); }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+/* ══════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════ */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 46px;
+  background: var(--cover); color: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; z-index: 100;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.tb-title {
+  font-family: var(--font-main); font-size: 22px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.3px; user-select: none;
+}
+.tb-right { display: flex; gap: 6px; align-items: center; }
+.tb-btn {
+  background: rgba(255,255,255,0.14); border: none; color: #fff;
+  padding: 5px 11px; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-family: var(--font-ui); transition: background 0.18s;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.26); }
+#drive-chip {
+  font-size: 11px; color: rgba(255,255,255,0.7); cursor: pointer;
+  display: none;
+}
+
+/* ══════════════════════════════════════════
+   DESKTOP BOOK LAYOUT
+══════════════════════════════════════════ */
+#app { padding-top: 46px; min-height: 100vh; }
+
+#book-wrap {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 16px 10px 16px;
+  position: relative;
+  height: calc(100vh - 46px);
+}
+
+.page-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 80px;
+  background: var(--cover); color: #fff; border: none; cursor: pointer;
+  border-radius: 6px; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 12px var(--shadow);
+  transition: all 0.2s; z-index: 10;
+}
+.page-arrow:hover { background: var(--cover2); transform: translateY(-50%) scale(1.06); }
+.page-arrow:disabled { opacity: 0.28; cursor: not-allowed; transform: translateY(-50%); }
+#arrow-prev { left: 4px; border-radius: 0 6px 6px 0; }
+#arrow-next { right: 4px; border-radius: 6px 0 0 6px; }
+
+#book {
+  display: flex;
+  width: min(1160px, calc(100vw - 100px));
+  height: 100%;
+  border-radius: 3px 10px 10px 3px;
+  box-shadow:
+    -6px 6px 28px var(--shadow),
+     6px 6px 28px var(--shadow),
+     0 0 0 1px rgba(0,0,0,0.08);
+  position: relative;
+  transition: transform 0.05s;
+}
+
+#book::before {
+  content: '';
+  position: absolute;
+  left: -18px; top: 2px; bottom: 2px; width: 18px;
+  background: linear-gradient(to right, rgba(0,0,0,0.0), var(--spine-bg));
+  border-radius: 4px 0 0 4px;
+  pointer-events: none;
+}
+
+#book.flip-next { animation: flipNext 0.42s cubic-bezier(.4,0,.2,1); }
+#book.flip-prev { animation: flipPrev 0.42s cubic-bezier(.4,0,.2,1); }
+@keyframes flipNext {
+  0%   { transform: perspective(1800px) rotateY(0deg); }
+  38%  { transform: perspective(1800px) rotateY(-9deg); }
+  100% { transform: perspective(1800px) rotateY(0deg); }
+}
+@keyframes flipPrev {
+  0%   { transform: perspective(1800px) rotateY(0deg); }
+  38%  { transform: perspective(1800px) rotateY(9deg); }
+  100% { transform: perspective(1800px) rotateY(0deg); }
+}
+
+#spine {
+  width: 28px; flex-shrink: 0;
+  background: linear-gradient(to right,
+    var(--spine-bg) 0%,
+    var(--cover2) 30%,
+    var(--cover) 50%,
+    var(--cover2) 70%,
+    var(--spine-bg) 100%
+  );
+  position: relative; z-index: 2;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.25), 2px 0 8px rgba(0,0,0,0.25);
+}
+
+#page-left {
+  flex: 1;
+  background: var(--paper);
+  border-right: 1px solid var(--line);
+  border-radius: 3px 0 0 3px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+#page-left::before {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0; width: 1px;
+  background: var(--margin-line);
+  pointer-events: none; z-index: 1;
+}
+
+#page-right {
+  flex: 1;
+  background: var(--paper);
+  border-radius: 0 10px 10px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+#right-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+#page-right::before {
+  content: '';
+  position: absolute;
+  left: 28px; top: 0; bottom: 0; width: 1px;
+  background: var(--margin-line);
+  pointer-events: none; z-index: 1;
+}
+
+.ruled-page::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent calc(var(--line-h) - 1px),
+    var(--ruled-line) calc(var(--line-h) - 1px),
+    var(--ruled-line) var(--line-h)
+  );
+  background-position: 0 72px;
+  z-index: 0;
+}
+
+.page-hdr {
+  padding: 12px 18px 8px 20px;
+  border-bottom: 1.5px solid var(--margin-line);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  position: relative; z-index: 3; flex-shrink: 0;
+  background: var(--paper);
+}
+.page-hdr-date {
+  font-family: var(--font-main); font-size: 24px; font-weight: 700;
+  color: var(--accent); line-height: 1; cursor: pointer;
+  border-bottom: 2px dashed transparent; transition: border-color 0.2s;
+  user-select: none;
+}
+.page-hdr-date:hover { border-bottom-color: var(--accent); }
+.page-hdr-right {
+  text-align: right; display: flex; flex-direction: column; gap: 2px;
+}
+.page-hdr-time {
+  font-family: var(--font-main); font-size: 15px; color: var(--ink2);
+}
+.page-hdr-num {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+}
+#page-right .page-hdr { padding-left: 36px; }
+
+.page-body {
+  flex: 1; overflow-y: auto; position: relative; z-index: 2;
+  padding-bottom: 24px;
+}
+
+/* ══════════════════════════════════════════
+   SECTIONS
+══════════════════════════════════════════ */
+.section { border-bottom: 1px dashed var(--line); }
+.sec-hdr {
+  position: sticky; top: 0; z-index: 4;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 16px 5px 20px;
+  border-bottom: 1px solid var(--margin-line);
+}
+.sec-title {
+  font-family: var(--font-main); font-size: 16px; font-weight: 600;
+  color: var(--accent2); display: flex; align-items: center; gap: 5px;
+}
+.sec-actions { display: flex; gap: 4px; align-items: center; }
+.sec-btn {
+  background: none; border: 1px solid var(--line); color: var(--ink3);
+  padding: 3px 9px; border-radius: 12px; cursor: pointer; font-size: 11px;
+  font-family: var(--font-ui); transition: all 0.18s;
+}
+.sec-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* Important items */
+.important-list { padding: 5px 16px 8px 20px; display: flex; flex-direction: column; gap: 2px; }
+.imp-item {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 4px 5px; border-radius: 6px; transition: background 0.15s;
+  font-family: var(--font-main); font-size: 17px; color: var(--ink); line-height: 1.45;
+}
+.imp-item:hover { background: var(--accent-light); }
+.imp-bullet { color: var(--accent); font-size: 18px; line-height: 1.3; flex-shrink: 0; }
+.imp-text { flex: 1; outline: none; background: transparent; border: none; font: inherit; color: inherit; }
+.imp-del { opacity: 0; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 15px; padding: 0 2px; transition: opacity 0.18s; align-self: center; }
+.imp-item:hover .imp-del { opacity: 0.55; }
+.imp-del:hover { opacity: 1 !important; }
+
+/* Checklist items */
+.check-list { padding: 5px 16px 8px 20px; display: flex; flex-direction: column; gap: 2px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 4px 5px; border-radius: 6px; transition: background 0.15s;
+  font-family: var(--font-main); font-size: 17px; color: var(--ink); line-height: 1.45;
+}
+.check-item:hover { background: var(--accent-light); }
+.check-box {
+  width: 17px; height: 17px; border: 2px solid var(--accent); border-radius: 3px;
+  cursor: pointer; flex-shrink: 0; margin-top: 4px;
+  background: transparent; transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center;
+}
+.check-item.done .check-box { background: var(--accent); border-color: var(--accent); }
+.check-item.done .check-box::after { content: '✓'; color: #fff; font-size: 11px; font-weight: bold; }
+.check-item.done .check-text { text-decoration: line-through; color: var(--ink3); opacity: 0.6; }
+.check-text { flex: 1; outline: none; background: transparent; border: none; font: inherit; color: inherit; }
+.check-time { font-size: 11px; color: var(--ink3); font-family: var(--font-ui); flex-shrink: 0; padding-top: 5px; }
+.carried-tag { font-size: 10px; background: var(--accent-light); color: var(--accent2); padding: 1px 5px; border-radius: 8px; font-family: var(--font-ui); flex-shrink: 0; margin-top: 5px; cursor: default; }
+.done-tag { font-size: 10px; background: var(--accent-light); color: var(--ink3); padding: 1px 5px; border-radius: 8px; font-family: var(--font-ui); flex-shrink: 0; margin-top: 5px; cursor: default; opacity: 0.85; }
+.check-del { opacity: 0; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 15px; padding: 0 2px; transition: opacity 0.18s; align-self: center; }
+.check-item:hover .check-del { opacity: 0.55; }
+.check-del:hover { opacity: 1 !important; }
+
+/* Check item inner layout */
+.check-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.check-text-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.check-actions {
+  display: flex; gap: 1px; opacity: 0; transition: opacity 0.18s; flex-shrink: 0; margin-left: auto;
+}
+.check-item:hover .check-actions { opacity: 1; }
+.check-action-btn {
+  background: none; border: none; cursor: pointer; font-size: 13px;
+  padding: 1px 4px; border-radius: 4px; opacity: 0.55; transition: all 0.15s;
+  line-height: 1; color: var(--ink2);
+}
+.check-action-btn:hover { opacity: 1; background: var(--accent-light); }
+
+/* Imp item inner layout */
+.imp-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.imp-text-row { display: flex; align-items: center; gap: 4px; }
+.imp-actions {
+  display: flex; gap: 1px; opacity: 0; transition: opacity 0.18s; flex-shrink: 0; margin-left: auto;
+}
+.imp-item:hover .imp-actions { opacity: 1; }
+
+/* Explanations */
+.explanation-wrap { margin-top: 3px; padding-left: 1px; }
+.explanation-text {
+  font-family: var(--font-ui); font-size: 12px; color: var(--ink3); font-style: italic;
+  outline: none; background: transparent; border: none; padding: 2px 5px; border-radius: 4px;
+  width: 100%; line-height: 1.5; display: block; min-height: 18px;
+  border-left: 2px solid var(--accent-light);
+}
+.explanation-text:empty::before { content: attr(data-ph); opacity: 0.5; }
+.explanation-text:focus { background: var(--paper2); color: var(--ink2); border-left-color: var(--accent); }
+
+/* Subtasks */
+.subtask-list {
+  margin-top: 5px; margin-left: 2px; display: flex; flex-direction: column; gap: 1px;
+  border-left: 2px solid var(--accent-light); padding-left: 8px;
+}
+.subtask-item {
+  display: flex; align-items: center; gap: 5px; padding: 2px 3px; border-radius: 5px;
+  transition: background 0.15s; font-family: var(--font-main); font-size: 15px; color: var(--ink);
+}
+.subtask-item:hover { background: var(--accent-light); }
+.subtask-box {
+  width: 14px !important; height: 14px !important; border: 1.5px solid var(--accent) !important;
+  border-radius: 3px; cursor: pointer; flex-shrink: 0;
+  background: transparent; transition: all 0.18s; display: flex; align-items: center; justify-content: center;
+}
+.subtask-item.done .subtask-box { background: var(--accent) !important; border-color: var(--accent) !important; }
+.subtask-item.done .subtask-box::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
+.subtask-item.done .subtask-text { text-decoration: line-through; color: var(--ink3); opacity: 0.6; }
+.subtask-text { flex: 1; outline: none; background: transparent; border: none; font: inherit; color: inherit; min-width: 0; }
+.subtask-expl {
+  font-size: 11px; color: var(--ink3); font-style: italic; font-family: var(--font-ui);
+  margin-top: 1px; padding-left: 19px; line-height: 1.4;
+}
+.subtask-del { opacity: 0; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; padding: 0 2px; transition: opacity 0.18s; }
+.subtask-item:hover .subtask-del { opacity: 0.5; }
+.subtask-del:hover { opacity: 1 !important; }
+.add-subtask-row {
+  display: flex; gap: 5px; align-items: center; padding: 3px 0; margin-top: 2px;
+}
+.add-subtask-input {
+  flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--line);
+  outline: none; font-family: var(--font-main); font-size: 14px; color: var(--ink);
+  padding: 1px 0; caret-color: var(--accent);
+}
+.add-subtask-input::placeholder { color: var(--ink3); opacity: 0.55; font-style: italic; }
+.add-subtask-input:focus { border-bottom-color: var(--accent); }
+.subtask-add-btn {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff;
+  border: none; cursor: pointer; font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s;
+}
+.subtask-add-btn:hover { background: var(--accent2); }
+
+/* Add-item rows */
+.add-row { display: flex; gap: 6px; align-items: center; padding: 3px 16px 8px 20px; }
+.add-input {
+  flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--line);
+  outline: none; font-family: var(--font-main); font-size: 16px; color: var(--ink);
+  padding: 2px 0; caret-color: var(--accent);
+}
+.add-input::placeholder { color: var(--ink3); opacity: 0.55; font-style: italic; }
+.add-input:focus { border-bottom-color: var(--accent); }
+.add-time {
+  width: 72px; background: transparent; border: none; border-bottom: 1px dashed var(--line);
+  outline: none; font-family: var(--font-ui); font-size: 12px; color: var(--ink3);
+  padding: 2px 0; text-align: center;
+}
+.add-time:focus { border-bottom-color: var(--accent); }
+.add-btn {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none; cursor: pointer;
+  font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.18s;
+}
+.add-btn:hover { background: var(--accent2); transform: scale(1.1); }
+
+/* Diary textarea */
+.diary-wrap { padding: 6px 20px 12px 36px; position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; }
+.diary-ta {
+  flex: 1; width: 100%; resize: none;
+  background: transparent; border: none; outline: none;
+  font-family: var(--font-main); font-size: 19px; color: var(--ink);
+  line-height: var(--line-h); padding: 0; caret-color: var(--accent);
+  transition: color var(--trans);
+  min-height: 200px;
+}
+.diary-ta::placeholder { color: var(--ink3); opacity: 0.55; font-style: italic; }
+
+/* Recordings */
+.recordings-wrap { padding: 6px 16px 10px 20px; display: flex; flex-direction: column; gap: 8px; }
+
+.stt-btns { display: flex; gap: 4px; }
+.stt-btn {
+  padding: 3px 10px; border: 1px solid var(--line); border-radius: 14px;
+  cursor: pointer; font-size: 11px; font-family: var(--font-ui);
+  background: var(--paper); color: var(--ink3); transition: all 0.18s;
+}
+.stt-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.stt-btn:not(.on):hover { border-color: var(--accent); color: var(--accent); }
+
+.upload-zone {
+  border: 2px dashed var(--line); border-radius: 10px;
+  padding: 16px; text-align: center; cursor: pointer;
+  transition: all 0.2s; color: var(--ink3); font-size: 12px; font-family: var(--font-ui);
+  user-select: none;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent); background: var(--accent-light); color: var(--accent);
+}
+.upload-zone .uz-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+
+.stt-prog {
+  display: none; align-items: center; gap: 8px;
+  background: var(--accent-light); border: 1px solid var(--accent);
+  border-radius: 8px; padding: 8px 12px;
+  font-family: var(--font-ui); font-size: 12px; color: var(--accent2);
+}
+.stt-prog.on { display: flex; }
+.spinner {
+  width: 14px; height: 14px; border: 2px solid var(--accent);
+  border-top-color: transparent; border-radius: 50%;
+  animation: spin 0.75s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.rec-card {
+  background: var(--paper2); border: 1px solid var(--line); border-radius: 9px;
+  padding: 9px 12px; transition: box-shadow 0.18s;
+}
+.rec-card:hover { box-shadow: 0 2px 8px var(--shadow2); }
+.rec-name-row {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-main); font-size: 15px; font-weight: 600;
+  color: var(--accent2); margin-bottom: 5px;
+}
 .rec-name-edit { outline: none; background: transparent; border: none; font: inherit; color: inherit; flex: 1; }
 .rec-del { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 15px; opacity: 0.4; transition: opacity 0.18s; }
 .rec-del:hover { opacity: 1; color: #c0392b; }

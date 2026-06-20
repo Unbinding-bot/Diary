@@ -1,5 +1,11 @@
 /* Shared design tokens for My Diary + Audio Inbox.
-   Both pages link this file so themes always stay in sync. */
+   Both pages link this file so themes always stay in sync.
+
+   Theme model: a color family (cream / forest / blue / purple / pink)
+   plus an independent light/dark toggle.
+   data-theme values: "<family>" for light, "<family>-dark" for dark.
+   "default" is the cream family's light variant (kept as the bare
+   :root for backward compatibility with existing saved data). */
 
 @font-face {
   font-family: handwriting;
@@ -9,7 +15,7 @@
   font-style: normal;
 }
 
-/* DESIGN TOKENS */
+/* DESIGN TOKENS — Cream (light, default) */
 :root {
   --paper:        #faf6ed;
   --paper2:       #f4eedf;
@@ -35,7 +41,9 @@
   --line-h:       34px;
   --trans:        0.28s ease;
 }
-[data-theme="dark"] {
+
+/* Cream — dark */
+[data-theme="default-dark"] {
   --paper: #18160f; --paper2: #201d14; --paper3: #252218;
   --ink: #e4dcc8; --ink2: #a89a82; --ink3: #6a6050;
   --line: #2c2920; --accent: #d9724a; --accent2: #b05535;
@@ -45,16 +53,8 @@
   --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
   --good: #5a9c54; --warn: #d9724a;
 }
-[data-theme="white"] {
-  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
-  --ink: #111; --ink2: #444; --ink3: #999;
-  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
-  --accent-light: #e8f0fd; --margin-line: rgba(80,130,230,0.35);
-  --ruled-line: rgba(200,200,200,0.7);
-  --cover: #1a3f9e; --cover2: #0e2d7a; --spine-bg: #091e52;
-  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
-  --good: #2d8a4e; --warn: #d6432b;
-}
+
+/* Forest — light */
 [data-theme="forest"] {
   --paper: #f2f5ee; --paper2: #e8ede2; --paper3: #dde4d5;
   --ink: #1c2a18; --ink2: #3e5438; --ink3: #6e8865;
@@ -64,4 +64,84 @@
   --cover: #1e4a1a; --cover2: #153513; --spine-bg: #0e2410;
   --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
   --good: #3d7a38; --warn: #a8501f;
+}
+/* Forest — dark */
+[data-theme="forest-dark"] {
+  --paper: #11160f; --paper2: #161c13; --paper3: #1c2318;
+  --ink: #d9e4d2; --ink2: #9bb091; --ink3: #62755c;
+  --line: #283224; --accent: #5fa856; --accent2: #4a8943;
+  --accent-light: #1c2c19; --margin-line: rgba(95,168,86,0.3);
+  --ruled-line: rgba(50,64,44,0.9);
+  --cover: #14300f; --cover2: #0d220a; --spine-bg: #081505;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+  --good: #5fa856; --warn: #d9724a;
+}
+
+/* Blue — light (formerly "Clean White") */
+[data-theme="blue"] {
+  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
+  --ink: #111; --ink2: #444; --ink3: #999;
+  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
+  --accent-light: #e8f0fd; --margin-line: rgba(80,130,230,0.35);
+  --ruled-line: rgba(200,200,200,0.7);
+  --cover: #1a3f9e; --cover2: #0e2d7a; --spine-bg: #091e52;
+  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
+  --good: #2d8a4e; --warn: #d6432b;
+}
+/* Blue — dark */
+[data-theme="blue-dark"] {
+  --paper: #0e1420; --paper2: #131a28; --paper3: #18202f;
+  --ink: #dbe4f5; --ink2: #94a6c8; --ink3: #5b6a89;
+  --line: #232e42; --accent: #5b8fee; --accent2: #4576dd;
+  --accent-light: #16223a; --margin-line: rgba(91,143,238,0.3);
+  --ruled-line: rgba(40,52,76,0.9);
+  --cover: #0d2358; --cover2: #091942; --spine-bg: #051030;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+  --good: #4fae71; --warn: #e0654a;
+}
+
+/* Purple — light */
+[data-theme="purple"] {
+  --paper: #f8f5fb; --paper2: #f0eaf6; --paper3: #e6dcef;
+  --ink: #2a1f33; --ink2: #564468; --ink3: #93839f;
+  --line: #ddcdef; --accent: #7c4fb0; --accent2: #5e3a8a;
+  --accent-light: #ece0f7; --margin-line: rgba(160,100,210,0.35);
+  --ruled-line: rgba(180,150,200,0.5);
+  --cover: #4a2070; --cover2: #371757; --spine-bg: #240e3a;
+  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
+  --good: #3d7a38; --warn: #a8501f;
+}
+/* Purple — dark */
+[data-theme="purple-dark"] {
+  --paper: #160f1e; --paper2: #1c1426; --paper3: #221a2e;
+  --ink: #e6dcf2; --ink2: #b09bc6; --ink3: #6e5f80;
+  --line: #2e2240; --accent: #a875e0; --accent2: #9059c9;
+  --accent-light: #251a35; --margin-line: rgba(168,117,224,0.3);
+  --ruled-line: rgba(58,42,76,0.9);
+  --cover: #341358; --cover2: #260d42; --spine-bg: #18082a;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+  --good: #5fa856; --warn: #d9724a;
+}
+
+/* Pink — light */
+[data-theme="pink"] {
+  --paper: #fdf5f7; --paper2: #fbeaef; --paper3: #f7dde5;
+  --ink: #3a1c26; --ink2: #6b3a4a; --ink3: #a8808f;
+  --line: #f2cdd9; --accent: #d9527e; --accent2: #b13862;
+  --accent-light: #fbe2ea; --margin-line: rgba(217,82,126,0.35);
+  --ruled-line: rgba(220,170,185,0.5);
+  --cover: #9c2c54; --cover2: #7a1f40; --spine-bg: #54122a;
+  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
+  --good: #3d7a38; --warn: #a8501f;
+}
+/* Pink — dark */
+[data-theme="pink-dark"] {
+  --paper: #1e1014; --paper2: #26141a; --paper3: #2e1921;
+  --ink: #f2dce3; --ink2: #c98fa1; --ink3: #805968;
+  --line: #3a1f29; --accent: #e8729b; --accent2: #d4537f;
+  --accent-light: #321b24; --margin-line: rgba(232,114,155,0.3);
+  --ruled-line: rgba(70,38,50,0.9);
+  --cover: #6e1d3e; --cover2: #54142f; --spine-bg: #350c1d;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+  --good: #5fa856; --warn: #d9724a;
 }

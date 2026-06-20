@@ -1169,9 +1169,9 @@ Return JSON only, no markdown fences:
 // Init
 function init() {
   diaryCfgCache = loadDiaryCfgReadOnly();
-  if (diaryCfgCache?.theme) {
-    document.documentElement.setAttribute('data-theme', diaryCfgCache.theme === 'default' ? '' : diaryCfgCache.theme);
-  }
+  const base = diaryCfgCache?.theme || 'default';
+  const attr = diaryCfgCache?.darkMode ? `${base}-dark` : (base === 'default' ? '' : base);
+  document.documentElement.setAttribute('data-theme', attr);
   loadInbox();
   renderCards();
   renderCalendar();

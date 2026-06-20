@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audio Inbox — My Diary</title>
+<title>Audio Inbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -112,78 +112,60 @@ body {
 }
 .sec-label .count { font-size: 12px; font-family: var(--font-ui); color: var(--ink3); font-weight: normal; }
 
-/* Layout: cards column (left) + day-drop calendar (right) */
-#main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; }
-@media (max-width: 880px) {
+/* Layout: compact recording list | transcript reader | calendar */
+#main-grid { display: grid; grid-template-columns: minmax(260px, 360px) 1fr 300px; gap: 18px; align-items: start; }
+@media (max-width: 1180px) {
+  #main-grid { grid-template-columns: minmax(240px, 320px) 1fr; }
+  #cal-panel { grid-column: 1 / -1; position: static; }
+}
+@media (max-width: 760px) {
   #main-grid { grid-template-columns: 1fr; }
+  #rec-pane, #detail-pane { min-height: 0; }
 }
 
-/* Recording cards */
-#cards { display: flex; flex-direction: column; gap: 12px; }
-.rcard {
+#rec-pane, #detail-pane {
   background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px;
-  padding: 14px 16px; box-shadow: 0 2px 8px var(--shadow2);
-  cursor: grab; transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  padding: 14px; min-height: 420px; max-height: calc(100vh - 160px); overflow-y: auto;
+  position: sticky; top: 66px;
 }
-.rcard:active { cursor: grabbing; }
+@media (max-width: 760px) {
+  #rec-pane, #detail-pane { position: static; max-height: none; }
+}
+
+/* Compact recording list (left pane) */
+#cards { display: flex; flex-direction: column; gap: 8px; }
+.rcard {
+  background: var(--paper2); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 9px 11px; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s, opacity 0.2s;
+}
+.rcard:hover { border-color: var(--accent); }
+.rcard.selected { border-color: var(--accent); background: var(--accent-light); }
+.rcard[draggable="true"] { cursor: grab; }
 .rcard.dragging { opacity: 0.4; }
-.rcard.assigned { border-color: var(--good); background: var(--accent-light); }
-.rcard.processing { opacity: 0.7; }
-.rcard-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.rcard-icon { font-size: 18px; flex-shrink: 0; }
+.rcard.assigned { border-color: var(--good); }
+.rcard.processing { opacity: 0.7; cursor: default; }
+.rcard-top { display: flex; align-items: center; gap: 7px; }
+.rcard-icon { font-size: 15px; flex-shrink: 0; }
 .rcard-title {
-  font-family: var(--font-main); font-size: 18px; color: var(--ink); flex: 1;
+  font-family: var(--font-main); font-size: 16px; color: var(--ink); flex: 1;
   outline: none; border: none; background: transparent; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .rcard-status {
-  font-size: 10px; font-family: var(--font-ui); padding: 2px 7px; border-radius: 8px;
+  font-size: 9px; font-family: var(--font-ui); padding: 2px 6px; border-radius: 8px;
   flex-shrink: 0; white-space: nowrap;
 }
 .rcard-status.processing { background: var(--accent-light); color: var(--accent2); }
 .rcard-status.ready { background: rgba(61,122,56,0.15); color: var(--good); }
 .rcard-status.assigned { background: var(--good); color: #fff; }
 .rcard-del {
-  background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 15px;
-  padding: 0 3px; flex-shrink: 0; transition: color 0.15s;
+  background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 14px;
+  padding: 0 2px; flex-shrink: 0; transition: color 0.15s;
 }
 .rcard-del:hover { color: var(--accent); }
-.rcard audio { width: 100%; height: 32px; margin: 6px 0; }
-.rcard-summary {
-  font-size: 13px; color: var(--ink2); font-family: var(--font-ui);
-  margin: 4px 0 6px; line-height: 1.4;
-}
 .rcard-meta {
-  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
-  display: flex; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;
-}
-.rcard-tx-toggle {
-  background: var(--accent-light); border: 1px solid var(--line); color: var(--accent2);
-  font-size: 11px; padding: 3px 9px; border-radius: 6px; cursor: pointer; font-family: var(--font-ui);
-}
-.rcard-tx-toggle:hover { background: var(--accent); color: #fff; }
-.rcard-transcript {
-  display: none; margin-top: 8px; padding: 10px; background: var(--paper2);
-  border-radius: 8px; font-size: 14px; line-height: 1.5; color: var(--ink);
-  font-family: var(--font-main); max-height: 220px; overflow-y: auto;
-  white-space: pre-wrap;
-}
-.rcard-transcript.open { display: block; }
-.rcard-assign-row {
-  display: flex; align-items: center; gap: 6px; margin-top: 8px;
-  font-size: 12px; font-family: var(--font-ui); color: var(--ink3);
-}
-.rcard-assign-row input[type="date"] {
-  font-family: var(--font-ui); font-size: 12px; padding: 3px 6px;
-  border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink);
-}
-.rcard-assign-btn {
-  background: var(--accent); color: #fff; border: none; padding: 4px 10px;
-  border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font-ui);
-  transition: background 0.15s;
-}
-.rcard-assign-btn:hover { background: var(--accent2); }
-.rcard-assigned-note {
-  font-size: 11px; color: var(--good); font-family: var(--font-ui); margin-top: 6px;
+  font-size: 10px; color: var(--ink3); font-family: var(--font-ui);
+  display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; padding-left: 22px;
 }
 
 /* Empty state */
@@ -191,6 +173,83 @@ body {
   text-align: center; padding: 40px 20px; color: var(--ink3);
   font-family: var(--font-main); font-size: 19px;
 }
+#detail-empty {
+  text-align: center; padding: 60px 20px; color: var(--ink3);
+  font-family: var(--font-main); font-size: 18px;
+}
+
+/* Transcript pane (right of list) */
+.detail-rec-title {
+  font-family: var(--font-main); font-size: 22px; color: var(--ink);
+  outline: none; border: none; background: transparent; width: 100%;
+  margin-bottom: 6px;
+}
+.detail-audio { width: 100%; height: 34px; margin-bottom: 8px; }
+.detail-summary {
+  font-size: 13px; color: var(--ink2); font-family: var(--font-ui);
+  background: var(--accent-light); padding: 8px 10px; border-radius: 8px;
+  margin-bottom: 10px; line-height: 1.45;
+}
+.detail-meta {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+  display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.detail-assign-row {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 14px;
+  font-size: 12px; font-family: var(--font-ui); color: var(--ink3);
+  padding-bottom: 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap;
+}
+.detail-assign-row input[type="date"] {
+  font-family: var(--font-ui); font-size: 12px; padding: 4px 7px;
+  border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink);
+}
+.detail-assign-btn {
+  background: var(--accent); color: #fff; border: none; padding: 5px 12px;
+  border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font-ui);
+  transition: background 0.15s;
+}
+.detail-assign-btn:hover { background: var(--accent2); }
+.detail-assigned-note {
+  font-size: 12px; color: var(--good); font-family: var(--font-ui);
+  margin-bottom: 14px; padding: 6px 10px; background: rgba(61,122,56,0.12); border-radius: 6px;
+}
+.detail-tx-label {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+}
+
+/* Formatted transcript: same conventions as the diary's formatted view */
+.detail-transcript {
+  font-family: var(--font-main); font-size: 18px; color: var(--ink); line-height: 1.5;
+}
+.detail-transcript h1, .detail-transcript h2, .detail-transcript h3 {
+  font-family: var(--font-main); color: var(--accent2); margin: 12px 0 5px; line-height: 1.2;
+}
+.detail-transcript h1 { font-size: 24px; }
+.detail-transcript h2 { font-size: 21px; }
+.detail-transcript h3 { font-size: 19px; }
+.detail-transcript p { margin: 0 0 10px; }
+.detail-transcript ul, .detail-transcript ol { margin: 0 0 10px; padding-left: 26px; }
+.detail-transcript li { margin-bottom: 3px; }
+.detail-transcript strong { color: var(--accent2); }
+.detail-transcript .tx-note {
+  color: var(--ink3); font-style: italic; font-size: 13px; font-family: var(--font-ui);
+  margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line);
+}
+.detail-edit-toggle {
+  background: var(--accent-light); border: 1px solid var(--line); color: var(--accent2);
+  font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: var(--font-ui);
+  margin-bottom: 10px;
+}
+.detail-edit-toggle:hover { background: var(--accent); color: #fff; }
+.detail-transcript-edit {
+  display: none; width: 100%; min-height: 240px; font-family: var(--font-main); font-size: 17px;
+  color: var(--ink); background: var(--paper2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px; line-height: 1.5; resize: vertical;
+}
+.detail-transcript-edit.open { display: block; }
+.detail-transcript.hidden-by-edit { display: none; }
+
 
 /* Calendar drop panel */
 #cal-panel {
@@ -264,7 +323,7 @@ body {
 <div id="wrap">
   <div class="intro">
     Drop in audio recordings from your device. <strong>Gemini transcribes each one</strong>,
-    gives it a title and a short summary, then drag it onto the day it belongs to.
+    gives it a title and a short summary — then drag it onto the day it belongs to.
     Nothing here touches your diary until you assign it.
   </div>
 
@@ -277,15 +336,22 @@ body {
   </div>
 
   <div id="main-grid">
-    <div>
+    <div id="rec-pane">
       <div class="sec-label">Recordings <span class="count" id="rec-count"></span></div>
       <div id="cards"></div>
       <div id="empty-note" style="display:none">No recordings yet — drop some audio above to get started.</div>
     </div>
 
+    <div id="detail-pane">
+      <div class="sec-label">Transcript</div>
+      <div id="detail-body">
+        <div id="detail-empty">Select a recording on the left to read its transcript.</div>
+      </div>
+    </div>
+
     <div id="cal-panel">
       <div class="cal-panel-title" id="cal-title">Assign to a day</div>
-      <div class="cal-panel-sub">Drag a card onto a date below</div>
+      <div class="cal-panel-sub">Drag a recording onto a date below</div>
       <div class="cal-nav">
         <button onclick="calMove(-1)">‹</button>
         <span class="cal-nav-label" id="cal-nav-label"></span>
@@ -317,6 +383,7 @@ const IS_HTTPS = location.protocol === 'https:';
 const DRIVE_SCOPE = IS_HTTPS
   ? 'https://www.googleapis.com/auth/drive'
   : 'https://www.googleapis.com/auth/drive.file';
+
 
 let INBOX = { recs: [] }; // { id, name, file, data, size, transcript, summary, time, at, assignedTo }
 let diaryCfgCache = null; // read-only peek at diary_v2's cfg
@@ -402,6 +469,79 @@ function toDataUrl(file) {
   return new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
 }
 
+// How long Gemini's inline-audio request can comfortably handle before the
+// browser's base64 encoding step risks blowing past string/array limits
+// ("Allocation size overflow"). 6 minutes is a safe, generous ceiling.
+const MAX_SAFE_SECONDS = 360;
+const TRIM_SECONDS = 60; // if too long, send just this much so the user gets the gist
+
+function fmtDuration(totalSeconds) {
+  const s = Math.round(totalSeconds);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return m > 0 ? `${m} min ${r}s` : `${r}s`;
+}
+
+// Decode the file to find its duration. Returns null if decoding fails
+// (some formats/browsers can't decode — in that case we just proceed normally).
+async function getAudioDuration(file) {
+  try {
+    const arrayBuf = await file.arrayBuffer();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
+    const duration = audioBuf.duration;
+    ctx.close();
+    return { duration, audioBuf };
+  } catch(e) {
+    console.warn('Could not decode audio for duration check:', e.message);
+    return null;
+  }
+}
+
+// Trim an AudioBuffer down to the first `seconds` seconds and re-encode as a WAV Blob.
+function trimAudioBufferToWav(audioBuf, seconds) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const sampleRate = audioBuf.sampleRate;
+  const frameCount = Math.min(audioBuf.length, Math.floor(seconds * sampleRate));
+  const numChannels = audioBuf.numberOfChannels;
+  const trimmed = ctx.createBuffer(numChannels, frameCount, sampleRate);
+  for (let ch = 0; ch < numChannels; ch++) {
+    trimmed.copyToChannel(audioBuf.getChannelData(ch).subarray(0, frameCount), ch);
+  }
+  ctx.close();
+  return audioBufferToWavBlob(trimmed);
+}
+
+// Minimal WAV encoder (PCM 16-bit) — no external library needed.
+function audioBufferToWavBlob(buf) {
+  const numChannels = buf.numberOfChannels;
+  const sampleRate = buf.sampleRate;
+  const numFrames = buf.length;
+  const bytesPerSample = 2;
+  const blockAlign = numChannels * bytesPerSample;
+  const dataSize = numFrames * blockAlign;
+  const bufferArr = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(bufferArr);
+  const writeStr = (offset, str) => { for (let i=0;i<str.length;i++) view.setUint8(offset+i, str.charCodeAt(i)); };
+  writeStr(0, 'RIFF'); view.setUint32(4, 36 + dataSize, true); writeStr(8, 'WAVE');
+  writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true); view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); writeStr(36, 'data'); view.setUint32(40, dataSize, true);
+
+  const channels = [];
+  for (let ch = 0; ch < numChannels; ch++) channels.push(buf.getChannelData(ch));
+  let offset = 44;
+  for (let i = 0; i < numFrames; i++) {
+    for (let ch = 0; ch < numChannels; ch++) {
+      let sample = Math.max(-1, Math.min(1, channels[ch][i]));
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+      view.setInt16(offset, sample, true); offset += 2;
+    }
+  }
+  return new Blob([bufferArr], { type: 'audio/wav' });
+}
+
 // Fingerprint = filename + size. Cheap, no file reads needed, and reliable
 // enough to catch "I already uploaded/assigned this exact recording."
 function fingerprint(name, size) { return `${name}::${size}`; }
@@ -467,34 +607,67 @@ async function processFile(file) {
   const rec = {
     id, name: file.name.replace(/\.[^.]+$/,''), file: file.name, data: null,
     size: file.size, transcript: '', summary: '', time, at: now.toISOString(),
-    assignedTo: null, status: 'processing'
+    assignedTo: null, status: 'processing', trimNote: null
   };
   INBOX.recs.unshift(rec);
-  renderCards();
+  selectedId = id; // auto-select so the user sees progress in the detail pane
+  renderCards(); renderDetail();
 
   try {
+    // Keep the full original for local playback regardless of what we send to Gemini
     const data = await toDataUrl(file);
     rec.data = data;
+
     if (!key) {
       rec.status = 'ready';
-      rec.transcript = '(No Gemini key found — add one in the diary Settings, then re-process.)';
-      saveInbox(); renderCards();
+      rec.transcript = 'No Gemini key found — add one in the diary Settings, then delete and re-upload this file.';
+      saveInbox(); renderCards(); renderDetail();
       return;
     }
-    const result = await geminiTranscribeAndSummarize(file, data, key);
+
+    // Check duration before sending anything — long files can overflow the
+    // browser's base64 string/array limits when encoded for the API request.
+    let sendFile = file, sendDataUrl = data, trimmedNote = null;
+    const durInfo = await getAudioDuration(file);
+    if (durInfo && durInfo.duration > MAX_SAFE_SECONDS) {
+      const lenStr = fmtDuration(durInfo.duration);
+      const proceed = confirm(
+        `"${file.name}" is ${lenStr} long — too long to transcribe in full.\n\n` +
+        `Will you still continue? If so, only the first ${TRIM_SECONDS} seconds will be transcribed, ` +
+        `just so you get the gist.`
+      );
+      if (!proceed) {
+        rec.status = 'ready';
+        rec.transcript = '';
+        rec.trimNote = `Skipped — ${lenStr} long, too long to transcribe.`;
+        saveInbox(); renderCards(); renderDetail();
+        return;
+      }
+      const wavBlob = trimAudioBufferToWav(durInfo.audioBuf, TRIM_SECONDS);
+      sendFile = new File([wavBlob], file.name.replace(/\.[^.]+$/,'') + '-trimmed.wav', { type: 'audio/wav' });
+      sendDataUrl = await toDataUrl(sendFile);
+      trimmedNote = `This recording is ${lenStr} long — only the first ${TRIM_SECONDS} seconds were transcribed.`;
+      rec.trimNote = trimmedNote;
+    }
+
+    const result = await geminiTranscribeAndSummarize(sendFile, sendDataUrl, key);
     rec.transcript = result.transcript || '';
     rec.name = result.title || rec.name;
     rec.summary = result.summary || '';
     rec.status = 'ready';
     saveInbox();
-    renderCards();
-    toast(`🎙️ "${rec.name}" transcribed`);
+    renderCards(); renderDetail();
+    toast(trimmedNote ? `🎙️ "${rec.name}" transcribed (first ${TRIM_SECONDS}s only)` : `🎙️ "${rec.name}" transcribed`);
   } catch(e) {
     rec.status = 'ready';
-    rec.transcript = '(Transcription failed: ' + e.message + ')';
+    const msg = /allocation size overflow/i.test(e.message)
+      ? 'This recording is too long to transcribe in full. Try again — you\'ll be asked if you want just the first minute.'
+      : e.message;
+    rec.transcript = '';
+    rec.trimNote = 'Transcription failed: ' + msg;
     saveInbox();
-    renderCards();
-    toast('Error transcribing: ' + e.message);
+    renderCards(); renderDetail();
+    toast('Error transcribing: ' + msg);
   }
 }
 
@@ -505,6 +678,14 @@ async function geminiTranscribeAndSummarize(file, dataUrl, key) {
     contents: [{ parts: [
       { inline_data: { mime_type: file.type || 'audio/mpeg', data: b64 } },
       { text: `Transcribe this audio recording completely and accurately.
+Format the transcript using simple Markdown so it's easy to read:
+- use "## " for a short heading if there's a clear topic
+- use "- " for bullet points if the speaker lists multiple distinct things
+- use "1. " for numbered steps if the speaker describes a sequence
+- break into separate paragraphs (blank line between) wherever the topic shifts
+- use "**bold**" sparingly to mark names, dates, or key decisions
+- if there are multiple speakers, label each line "**Speaker:**" before their words
+
 Then give:
 - a short descriptive title (3-6 words)
 - a 1-2 sentence summary of what it's about
@@ -523,7 +704,10 @@ Return JSON only, no markdown fences:
   catch { return { transcript: txt, title: null, summary: '' }; }
 }
 
-// ── Card rendering ───────────────────────────────────────────
+// ── Selection state ────────────────────────────────────────────
+let selectedId = null;
+
+// ── Card rendering (compact list, left pane) ────────────────────
 function renderCards() {
   const wrap = document.getElementById('cards');
   const empty = document.getElementById('empty-note');
@@ -534,55 +718,155 @@ function renderCards() {
   wrap.innerHTML = INBOX.recs.map(r => {
     const isProcessing = r.status === 'processing';
     const isAssigned = !!r.assignedTo;
+    const isSelected = r.id === selectedId;
     const statusHtml = isAssigned
       ? `<span class="rcard-status assigned">✓ ${esc(r.assignedTo)}</span>`
       : isProcessing
-        ? `<span class="rcard-status processing"><span class="spin"></span>Transcribing</span>`
+        ? `<span class="rcard-status processing"><span class="spin"></span></span>`
         : `<span class="rcard-status ready">Ready</span>`;
     return `
-    <div class="rcard ${isProcessing?'processing':''} ${isAssigned?'assigned':''}" id="card-${r.id}"
-      draggable="${!isProcessing}" ondragstart="cardDragStart(event,'${r.id}')" ondragend="cardDragEnd(event)">
+    <div class="rcard ${isProcessing?'processing':''} ${isAssigned?'assigned':''} ${isSelected?'selected':''}" id="card-${r.id}"
+      draggable="${!isProcessing}" onclick="selectRec('${r.id}')"
+      ondragstart="cardDragStart(event,'${r.id}')" ondragend="cardDragEnd(event)">
       <div class="rcard-top">
         <span class="rcard-icon">🎙️</span>
-        <input class="rcard-title" value="${esc(r.name)}" ${isProcessing?'disabled':''}
-          onblur="renameRec('${r.id}', this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+        <span class="rcard-title">${esc(r.name)}</span>
         ${statusHtml}
-        <button class="rcard-del" onclick="deleteRec('${r.id}')" title="Delete">×</button>
+        <button class="rcard-del" onclick="event.stopPropagation();deleteRec('${r.id}')" title="Delete">×</button>
       </div>
-      ${r.data ? `<audio controls src="${r.data}"></audio>` : ''}
-      ${r.summary ? `<div class="rcard-summary">${esc(r.summary)}</div>` : ''}
       <div class="rcard-meta">
         <span>📅 ${esc(r.time)}</span>
-        <span>🎵 ${esc(r.file)}</span>
         ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
       </div>
-      ${!isProcessing ? `
-      <button class="rcard-tx-toggle" onclick="toggleTx('${r.id}')">📄 Transcript</button>
-      <div class="rcard-transcript" id="tx-${r.id}">${esc(r.transcript||'(empty)')}</div>
-      ${!isAssigned ? `
-      <div class="rcard-assign-row">
-        Or pick a day:
-        <input type="date" id="date-${r.id}" max="${phToday()}">
-        <button class="rcard-assign-btn" onclick="assignFromInput('${r.id}')">Assign</button>
-      </div>` : `<div class="rcard-assigned-note">Sent to your diary — open that day to see it.</div>`}
-      ` : ''}
     </div>`;
   }).join('');
 }
 
-function toggleTx(id) {
-  const el = document.getElementById('tx-' + id);
-  if (el) el.classList.toggle('open');
+function selectRec(id) {
+  selectedId = id;
+  renderCards();
+  renderDetail();
 }
+
 function renameRec(id, name) {
   const r = INBOX.recs.find(x=>x.id===id);
-  if (r) { r.name = name.trim() || r.name; saveInbox(); }
+  if (r) { r.name = name.trim() || r.name; saveInbox(); renderCards(); }
 }
 function deleteRec(id) {
   if (!confirm('Delete this recording from the inbox?')) return;
   INBOX.recs = INBOX.recs.filter(r=>r.id!==id);
   localStorage.removeItem(blobKey('inbox_' + id));
-  saveInbox(); renderCards();
+  if (selectedId === id) selectedId = null;
+  saveInbox(); renderCards(); renderDetail();
+}
+
+// ── Markdown -> HTML for transcripts (mirrors the diary's own formatter) ──
+function renderTranscriptMarkdown(text) {
+  if (!text || !text.trim()) return '<p style="color:var(--ink3);font-style:italic">No transcript text.</p>';
+  const lines = esc(text).split('\n');
+  let html = '';
+  let inUl = false, inOl = false;
+  const closeLists = () => {
+    if (inUl) { html += '</ul>'; inUl = false; }
+    if (inOl) { html += '</ol>'; inOl = false; }
+  };
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  for (let raw of lines) {
+    const line = raw.trim();
+    if (!line) { closeLists(); continue; }
+    let m;
+    if ((m = line.match(/^### (.+)/))) { closeLists(); html += `<h3>${inline(m[1])}</h3>`; continue; }
+    if ((m = line.match(/^## (.+)/)))  { closeLists(); html += `<h2>${inline(m[1])}</h2>`; continue; }
+    if ((m = line.match(/^# (.+)/)))   { closeLists(); html += `<h1>${inline(m[1])}</h1>`; continue; }
+    if ((m = line.match(/^[-*] (.+)/))) {
+      if (!inUl) { closeLists(); html += '<ul>'; inUl = true; }
+      html += `<li>${inline(m[1])}</li>`; continue;
+    }
+    if ((m = line.match(/^\d+\. (.+)/))) {
+      if (!inOl) { closeLists(); html += '<ol>'; inOl = true; }
+      html += `<li>${inline(m[1])}</li>`; continue;
+    }
+    closeLists();
+    html += `<p>${inline(line)}</p>`;
+  }
+  closeLists();
+  return html;
+}
+
+// ── Detail pane (transcript reader, right of the list) ──────────
+function renderDetail() {
+  const body = document.getElementById('detail-body');
+  const r = INBOX.recs.find(x => x.id === selectedId);
+  if (!r) {
+    body.innerHTML = `<div id="detail-empty">Select a recording on the left to read its transcript.</div>`;
+    return;
+  }
+  const isProcessing = r.status === 'processing';
+  const isAssigned = !!r.assignedTo;
+
+  if (isProcessing) {
+    body.innerHTML = `
+      <input class="detail-rec-title" value="${esc(r.name)}" disabled>
+      <div class="detail-meta"><span>📅 ${esc(r.time)}</span><span>🎵 ${esc(r.file)}</span></div>
+      <div style="padding:30px 0;text-align:center;color:var(--ink3);font-family:var(--font-ui)">
+        <span class="spin"></span>Transcribing with Gemini…
+      </div>`;
+    return;
+  }
+
+  const assignRow = isAssigned
+    ? `<div class="detail-assigned-note">✓ Sent to your diary on ${esc(r.assignedTo)} — open that day to see it.</div>`
+    : `<div class="detail-assign-row">
+        Send to:
+        <input type="date" id="detail-date-${r.id}" max="${phToday()}" value="${phToday()}">
+        <button class="detail-assign-btn" onclick="assignFromInput('${r.id}')">Assign to this day</button>
+        <span style="flex-basis:100%;font-size:11px;opacity:0.8">...or drag the card on the left onto a date in the calendar</span>
+      </div>`;
+
+  body.innerHTML = `
+    <input class="detail-rec-title" value="${esc(r.name)}" onblur="renameRec('${r.id}', this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()">
+    ${r.data ? `<audio class="detail-audio" controls src="${r.data}"></audio>` : ''}
+    ${r.summary ? `<div class="detail-summary">${esc(r.summary)}</div>` : ''}
+    <div class="detail-meta">
+      <span>📅 ${esc(r.time)}</span>
+      <span>🎵 ${esc(r.file)}</span>
+      ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
+    </div>
+    ${assignRow}
+    <div class="detail-tx-label">Transcript</div>
+    <button class="detail-edit-toggle" id="detail-edit-toggle-${r.id}" onclick="toggleDetailEdit('${r.id}')">✏️ Edit</button>
+    <div class="detail-transcript" id="detail-tx-${r.id}">${renderTranscriptMarkdown(r.transcript)}${r.trimNote ? `<div class="tx-note">${esc(r.trimNote)}</div>` : ''}</div>
+    <textarea class="detail-transcript-edit" id="detail-tx-edit-${r.id}"
+      onblur="updTranscript('${r.id}', this.value)">${esc(r.transcript)}</textarea>
+  `;
+}
+
+function toggleDetailEdit(id) {
+  const view = document.getElementById('detail-tx-' + id);
+  const edit = document.getElementById('detail-tx-edit-' + id);
+  const btn  = document.getElementById('detail-edit-toggle-' + id);
+  if (!view || !edit || !btn) return;
+  const showingEdit = edit.classList.contains('open');
+  if (showingEdit) {
+    edit.classList.remove('open'); view.classList.remove('hidden-by-edit');
+    btn.textContent = '✏️ Edit';
+  } else {
+    edit.classList.add('open'); view.classList.add('hidden-by-edit');
+    btn.textContent = '📄 Done editing';
+    setTimeout(() => edit.focus(), 0);
+  }
+}
+
+function updTranscript(id, text) {
+  const r = INBOX.recs.find(x=>x.id===id);
+  if (!r) return;
+  r.transcript = text;
+  saveInbox();
+  const view = document.getElementById('detail-tx-' + id);
+  if (view) view.innerHTML = renderTranscriptMarkdown(r.transcript) + (r.trimNote ? `<div class="tx-note">${esc(r.trimNote)}</div>` : '');
 }
 
 // ── Drag to calendar ─────────────────────────────────────────
@@ -637,7 +921,7 @@ function renderCalendar() {
 function calMove(dir) { calView.setMonth(calView.getMonth()+dir); renderCalendar(); }
 
 function assignFromInput(id) {
-  const input = document.getElementById('date-' + id);
+  const input = document.getElementById('detail-date-' + id);
   const v = input?.value;
   if (!v) { toast('Pick a date first'); return; }
   assignRecording(id, v);
@@ -656,6 +940,7 @@ async function assignRecording(recId, dateStr) {
     rec.assignedTo = dateStr;
     saveInbox();
     renderCards();
+    renderDetail();
     renderCalendar();
     toast(`✓ Sent to ${dateStr}`);
   } catch (e) {
@@ -692,10 +977,12 @@ async function injectIntoDiaryDay(dateStr, rec) {
   // Use Gemini to turn the transcript into diary text + important + checklist,
   // same shape the diary itself produces from a recording.
   const key = activeGeminiKey();
+  const hasUsableTranscript = !!(rec.transcript && rec.transcript.trim() &&
+    !/^(no gemini key found|transcription failed)/i.test(rec.transcript.trim()));
   let diaryAddition = `## ${rec.name}\n${rec.transcript || ''}`;
   let important = [];
   let checklist = [];
-  if (key && rec.transcript && !rec.transcript.startsWith('(')) {
+  if (key && hasUsableTranscript) {
     try {
       const parsed = await geminiParseForDay(rec.transcript, rec.name, key);
       if (parsed.diary) diaryAddition = `## ${rec.name}\n${parsed.diary}`;
@@ -703,6 +990,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
       checklist = parsed.checklist || [];
     } catch(e) { console.warn('Gemini day-parse failed, using raw transcript:', e.message); }
   }
+  if (rec.trimNote) diaryAddition += `\n\n*${rec.trimNote}*`;
 
   const sep = pg.diary ? '\n\n' : '';
   pg.diary = (pg.diary || '') + sep + diaryAddition;

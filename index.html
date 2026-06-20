@@ -1258,29 +1258,32 @@ function reattachCfgBlobs(cfg) {
   cfg.sfx = sfx;
 }
 
-function getRecentPageKeys() {
-  const today = phToday();
-  const all = Object.keys(S.pages).sort().reverse();
-  const keep = new Set();
-  keep.add(today);
-  for (const k of all) { if (keep.size >= MAX_LOCAL_PAGES) break; keep.add(k); }
-  return keep;
-}
-
 function persistLocal() {
-  try {
-    const keepKeys = getRecentPageKeys();
-    const localPages = {};
-    for (const k of keepKeys) { if (S.pages[k]) localPages[k] = S.pages[k]; }
-
-    // FIX: destructure { stripped }, don't store the wrapper object as pages
-    const { stripped: strippedPages } = stripAndSaveBlobs(localPages);
+  const buildPayload = (pages) => {
+    const { stripped: strippedPages } = stripAndSaveBlobs(pages);
     const strippedCfg = stripAndSaveCfgBlobs(S.cfg);
-
-    const payload = { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [], global: S.global || { important: [] } };
-    localStorage.setItem(STORE, JSON.stringify(payload));
+    return { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [], global: S.global || { important: [] } };
+  };
+  try {
+    localStorage.setItem(STORE, JSON.stringify(buildPayload(S.pages)));
   } catch(e) {
-    console.error('persistLocal failed:', e);
+    // Quota exceeded (rare): fall back to keeping today plus the most
+    // recent days with content, so the save still succeeds instead of failing silently.
+    console.warn('persistLocal: full save failed, retrying with a trimmed set:', e.message);
+    try {
+      const today = phToday();
+      const sortedDates = Object.keys(S.pages).sort().reverse();
+      const trimmed = {};
+      let count = 0;
+      for (const k of sortedDates) {
+        if (k === today || count < MAX_LOCAL_PAGES) { trimmed[k] = S.pages[k]; if (k !== today) count++; }
+      }
+      localStorage.setItem(STORE, JSON.stringify(buildPayload(trimmed)));
+      toast('Storage is nearly full, only recent days were saved locally. Connect Drive to keep everything backed up.', 6000);
+    } catch(e2) {
+      console.error('persistLocal failed even after trimming:', e2);
+      toast('Could not save, your browser storage may be full', 5000);
+    }
   }
 }
 
@@ -1330,22 +1333,6 @@ function load() {
   } catch(e) {}
 }
 
-async function loadPageFromDrive(dateStr) {
-  if (S.pages[dateStr]) return S.pages[dateStr];
-  if (!S.cfg.drive?.on) return null;
-  try {
-    const fileId = S.cfg.drive.fileId;
-    if (!fileId) return null;
-    const text = await downloadBackupFile(fileId, false);
-    const full = JSON.parse(text);
-    if (full.pages?.[dateStr]) {
-      S.pages[dateStr] = full.pages[dateStr];
-      return S.pages[dateStr];
-    }
-  } catch(e) {}
-  return null;
-}
-
 // Page data
 function page(d) {
   if (!S.pages[d]) S.pages[d] = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
@@ -1373,6 +1360,7 @@ function carryChecklist(d) {
 
 // Render page
 function renderPage(d) {
+  const wasMissingLocally = !S.pages[d];
   const pg = page(d);
   carryChecklist(d);
 
@@ -1410,6 +1398,36 @@ function renderPage(d) {
   document.getElementById('mob-date-input').value  = d;
   document.getElementById('mob-date-input').min = oldestAllowedDate();
   document.getElementById('mob-date-input').max = today;
+
+  // This page didn't exist locally — it may still exist in the Drive backup
+  // (written from another device, or via the Audio Inbox). Check in the
+  // background and re-render if Drive actually has content for this day.
+  if (wasMissingLocally && S.cfg.drive?.on && S.cfg.drive?.fileId) {
+    backfillPageFromDrive(d);
+  }
+}
+
+let driveBackfillInFlight = null;
+async function backfillPageFromDrive(d) {
+  if (driveBackfillInFlight === d) return;
+  driveBackfillInFlight = d;
+  try {
+    const fileId = S.cfg.drive.fileId;
+    const text = await downloadBackupFile(fileId, false);
+    const full = JSON.parse(text);
+    const drivePg = full.pages?.[d];
+    if (drivePg && hasContent(drivePg, d) && d === curDate && !hasContent(S.pages[d], d)) {
+      S.pages[d] = drivePg;
+      reattachBlobs({ [d]: S.pages[d] });
+      persistLocal();
+      renderPage(d);
+      toast('Found this day in your Drive backup');
+    }
+  } catch(e) {
+    console.warn('[Drive] Background backfill failed for', d, ':', e.message);
+  } finally {
+    if (driveBackfillInFlight === d) driveBackfillInFlight = null;
+  }
 }
 
 function hasContent(pg, date) {

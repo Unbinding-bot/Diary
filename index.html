@@ -16,9 +16,7 @@
   font-style: normal;
 }
 
-/* ══════════════════════════════════════════
-   DESIGN TOKENS
-══════════════════════════════════════════ */
+/* DESIGN TOKENS */
 :root {
   --paper:        #faf6ed;
   --paper2:       #f4eedf;
@@ -70,9 +68,7 @@
   --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
 }
 
-/* ══════════════════════════════════════════
-   BASE
-══════════════════════════════════════════ */
+/* BASE */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; }
 body {
@@ -83,9 +79,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ══════════════════════════════════════════
-   LOADING
-══════════════════════════════════════════ */
+/* LOADING */
 #loading {
   position: fixed; inset: 0; background: var(--cover);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -95,9 +89,7 @@ body {
 #loading p { color: rgba(255,255,255,0.75); font-size: 13px; font-family: var(--font-ui); }
 @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 
-/* ══════════════════════════════════════════
-   TOP BAR
-══════════════════════════════════════════ */
+/* TOP BAR */
 #topbar {
   position: fixed; top: 0; left: 0; right: 0; height: 46px;
   background: var(--cover); color: #fff;
@@ -122,9 +114,7 @@ body {
   display: none;
 }
 
-/* ══════════════════════════════════════════
-   DESKTOP BOOK LAYOUT
-══════════════════════════════════════════ */
+/* DESKTOP BOOK LAYOUT */
 #app { padding-top: 46px; min-height: 100vh; }
 
 #book-wrap {
@@ -309,9 +299,7 @@ body {
   padding-bottom: 24px;
 }
 
-/* ══════════════════════════════════════════
-   SECTIONS
-══════════════════════════════════════════ */
+/* SECTIONS */
 .section { border-bottom: 1px dashed var(--line); }
 .sec-hdr {
   position: sticky; top: 0; z-index: 4;
@@ -517,7 +505,6 @@ body {
 .upload-zone:hover, .upload-zone.drag-over {
   border-color: var(--accent); background: var(--accent-light); color: var(--accent);
 }
-.upload-zone .uz-icon { font-size: 24px; display: block; margin-bottom: 4px; }
 
 .stt-prog {
   display: none; align-items: center; gap: 8px;
@@ -549,7 +536,7 @@ body {
   flex: 1; min-width: 0;
 }
 .rec-card-btns { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
-/* "🗑 Audio" button, only visible on hover */
+/* "Audio" button, only visible on hover */
 .rec-audio-del {
   opacity: 0; background: none; border: 1px solid var(--line);
   color: var(--ink3); padding: 2px 7px; border-radius: 6px; cursor: pointer;
@@ -605,9 +592,7 @@ body {
   opacity: 0.4; font-style: italic; pointer-events: none;
 }
 
-/* ══════════════════════════════════════════
-   DESKTOP BOTTOM NAV BAR
-══════════════════════════════════════════ */
+/* DESKTOP BOTTOM NAV BAR */
 #desk-subnav {
   display: flex; align-items: center; justify-content: center; gap: 12px;
   padding: 0 0 28px;
@@ -627,9 +612,7 @@ body {
 .today-btn.show { display: flex; }
 .today-btn:hover { background: var(--accent2); }
 
-/* ══════════════════════════════════════════
-   MOBILE LAYOUT
-══════════════════════════════════════════ */
+/* MOBILE LAYOUT */
 @media (max-width: 768px) {
   #book-wrap { padding: 12px 0 80px; height: auto; }
   #book {
@@ -698,9 +681,7 @@ body {
   #desk-subnav { display: flex; }
 }
 
-/* ══════════════════════════════════════════
-   MODALS
-══════════════════════════════════════════ */
+/* MODALS */
 .modal-back {
   position: fixed; inset: 0; background: rgba(0,0,0,0.48);
   z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px;
@@ -887,12 +868,12 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 
 <!-- Top bar -->
 <div id="topbar">
-  <div class="tb-title" onclick="goToToday()">📔 My Diary</div>
+  <div class="tb-title" onclick="goToToday()">My Diary</div>
   <div class="tb-right">
     <span id="drive-chip"></span>
-    <button class="tb-btn" onclick="syncNow({allowPrompt:true})">🔄 Sync</button>
-    <button class="tb-btn" onclick="openModal('cal-modal')">📅 Jump</button>
-    <button class="tb-btn" onclick="openModal('set-modal')">⚙️ Settings</button>
+    <button class="tb-btn" onclick="syncNow({allowPrompt:true})">Sync</button>
+    <button class="tb-btn" onclick="openModal('cal-modal')">Jump</button>
+    <button class="tb-btn" onclick="openModal('set-modal')">Settings</button>
   </div>
 </div>
 
@@ -921,7 +902,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
           <!-- Important -->
           <div class="section" id="sec-imp">
             <div class="sec-hdr">
-              <div class="sec-title">⭐ Important</div>
+              <div class="sec-title">Important</div>
               <div class="sec-actions">
                 <button class="sec-btn" onclick="focusAddImp()">+ Add</button>
               </div>
@@ -937,7 +918,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
           <!-- Checklist -->
           <div class="section" id="sec-check">
             <div class="sec-hdr">
-              <div class="sec-title">✅ Checklist</div>
+              <div class="sec-title">Checklist</div>
               <div class="sec-actions">
                 <button class="sec-btn" onclick="focusAddCheck()">+ Add</button>
                 <button class="sec-btn" onclick="clearDone()">Clear done</button>
@@ -955,7 +936,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
           <!-- Recordings -->
           <div class="section" id="sec-rec">
             <div class="sec-hdr">
-              <div class="sec-title">🎙️ Recordings</div>
+              <div class="sec-title">Recordings</div>
               <div class="sec-actions">
                 <div class="stt-btns">
                   <button class="stt-btn on" data-m="gemini" onclick="setStt('gemini')">Gemini</button>
@@ -974,7 +955,6 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
                 ondragover="dragOver(event)"
                 ondragleave="dragLeave(event)"
                 ondrop="dropAudio(event)">
-                <span class="uz-icon">🎵</span>
                 Tap to upload recording, or drag &amp; drop<br>
                 <span style="font-size:10px;opacity:0.7;margin-top:2px;display:block">MP3 · M4A · WAV · OGG · WEBM</span>
               </div>
@@ -992,7 +972,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
       <div id="page-right" class="ruled-page">
         <div class="page-hdr">
           <div class="page-hdr-date" id="hdr-date-r" onclick="openModal('cal-modal')">How was your day?</div>
-          <button class="diary-view-toggle" id="diary-view-toggle" onclick="toggleDiaryView()" title="Toggle formatted view">📖 View</button>
+          <button class="diary-view-toggle" id="diary-view-toggle" onclick="toggleDiaryView()" title="Toggle formatted view">View</button>
         </div>
         <div class="page-body" id="right-body" style="display:flex;flex-direction:column;">
           <div class="diary-wrap" style="flex:1;display:flex;flex-direction:column;">
@@ -1013,7 +993,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 
   <!-- Desktop sub-nav -->
   <div id="desk-subnav">
-    <button class="today-btn" id="today-btn-desk" onclick="goToToday()">📖 Go to Today</button>
+    <button class="today-btn" id="today-btn-desk" onclick="goToToday()">Go to Today</button>
     <input type="date" id="date-jump-input" onchange="jumpDate(this.value)">
   </div>
 
@@ -1031,7 +1011,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 <div class="modal-back" id="cal-modal">
   <div class="modal" style="max-width:320px">
     <button class="modal-x" onclick="closeModal('cal-modal')">×</button>
-    <h2>📅 Jump to Date</h2>
+    <h2>Jump to Date</h2>
     <div class="cal-wrap">
       <div class="cal-nav">
         <button onclick="calMov(-1)">‹</button>
@@ -1050,10 +1030,10 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 <div class="modal-back" id="set-modal">
   <div class="modal">
     <button class="modal-x" onclick="closeModal('set-modal')">×</button>
-    <h2>⚙️ Settings</h2>
+    <h2>Settings</h2>
 
     <div class="set-sec">
-      <h3>🔑 API Keys (Gemini)</h3>
+      <h3>API Keys (Gemini)</h3>
       <div id="keys-list"></div>
       <div style="display:flex;gap:6px;margin-bottom:6px">
         <input type="text" id="new-key-lbl" placeholder="Label (Main, Backup…)" style="margin:0;flex:0 0 130px">
@@ -1063,7 +1043,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     </div>
 
     <div class="set-sec">
-      <h3>☁️ Google Drive</h3>
+      <h3>Google Drive</h3>
       <div id="drive-status"></div>
       <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID (xxxx.apps.googleusercontent.com)" style="margin-bottom:6px">
       <div class="btn-row">
@@ -1077,29 +1057,29 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     </div>
 
     <div class="set-sec">
-      <h3>🎨 Theme</h3>
+      <h3>Theme</h3>
       <div class="theme-grid">
         <div class="theme-card on" data-t="default" onclick="setTheme('default')">
-          <div class="theme-preview" style="background:#faf6ed;border:1px solid #ddd3b8">📜</div>
+          <div class="theme-preview" style="background:#faf6ed;border:1px solid #ddd3b8"></div>
           <div class="theme-name">Cream</div><div class="theme-sub">Classic notebook</div>
         </div>
         <div class="theme-card" data-t="dark" onclick="setTheme('dark')">
-          <div class="theme-preview" style="background:#18160f;color:#e4dcc8;border:1px solid #2c2920">🌙</div>
+          <div class="theme-preview" style="background:#18160f;color:#e4dcc8;border:1px solid #2c2920"></div>
           <div class="theme-name">Dark</div><div class="theme-sub">Night writing</div>
         </div>
         <div class="theme-card" data-t="white" onclick="setTheme('white')">
-          <div class="theme-preview" style="background:#fff;border:1px solid #ddd">☁️</div>
+          <div class="theme-preview" style="background:#fff;border:1px solid #ddd"></div>
           <div class="theme-name">Clean White</div><div class="theme-sub">Minimal</div>
         </div>
         <div class="theme-card" data-t="forest" onclick="setTheme('forest')">
-          <div class="theme-preview" style="background:#f2f5ee;border:1px solid #ccdac4">🌿</div>
+          <div class="theme-preview" style="background:#f2f5ee;border:1px solid #ccdac4"></div>
           <div class="theme-name">Forest</div><div class="theme-sub">Earthy surprise</div>
         </div>
       </div>
     </div>
 
     <div class="set-sec">
-      <h3>✍️ Fonts</h3>
+      <h3>Fonts</h3>
       <div id="fonts-list"></div>
       <div style="background:var(--paper2);border-radius:9px;padding:11px;margin-top:8px">
         <label>Font name</label>
@@ -1112,7 +1092,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     </div>
 
     <div class="set-sec">
-      <h3>🔊 Sound Effects</h3>
+      <h3>Sound Effects</h3>
       <div id="sfx-items">
         <div class="sfx-item">
           <span class="sfx-lbl">Page flip</span>
@@ -1139,7 +1119,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     </div>
 
     <div class="set-sec">
-      <h3>📐 Line Spacing</h3>
+      <h3>Line Spacing</h3>
       <div class="range-row">
         <input type="range" min="28" max="50" value="34" id="lh-slider" oninput="setLH(this.value)">
         <span class="range-val" id="lh-val">34px</span>
@@ -1147,12 +1127,12 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     </div>
 
     <div class="set-sec">
-      <h3>💾 Data</h3>
+      <h3>Data</h3>
       <div class="btn-row">
-        <button class="btn" onclick="exportAll()">⬇ Export</button>
-        <button class="btn" onclick="document.getElementById('import-in').click()">⬆ Import</button>
+        <button class="btn" onclick="exportAll()">Export</button>
+        <button class="btn" onclick="document.getElementById('import-in').click()">Import</button>
         <input type="file" id="import-in" accept=".json" style="display:none" onchange="importAll(this)">
-        <button class="btn btn-danger" onclick="confirmClear()">🗑 Clear All</button>
+        <button class="btn btn-danger" onclick="confirmClear()">Clear All</button>
       </div>
     </div>
 
@@ -1163,9 +1143,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  DIARY APP, JavaScript
-// ════════════════════════════════════════════════════════
+// DIARY APP, JavaScript
 
 const STORE = 'diary_v2';
 let S = {
@@ -1195,7 +1173,7 @@ const DRIVE_FILENAME = 'my-diary-backup.json';
 const DRIVE_FOLDER_NAME = 'My Diary';
 const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com';
 
-// ── Helpers ───────────────────────────────────────────────
+// Helpers
 function phToday() {
   const d = new Date();
   const y = d.getFullYear();
@@ -1241,9 +1219,7 @@ function relDateTimeLabel(iso) {
   return relDateLabel(dateStr);
 }
 
-// ════════════════════════════════════════════════════════
-//  STORAGE
-// ════════════════════════════════════════════════════════
+// STORAGE
 const MAX_LOCAL_PAGES = 5;
 const BLOB_PREFIX = 'diary_blob_';
 
@@ -1325,7 +1301,7 @@ function persistLocal() {
     const localPages = {};
     for (const k of keepKeys) { if (S.pages[k]) localPages[k] = S.pages[k]; }
 
-    // ── FIX: destructure { stripped }, don't store the wrapper object as pages ──
+    // FIX: destructure { stripped }, don't store the wrapper object as pages
     const { stripped: strippedPages } = stripAndSaveBlobs(localPages);
     const strippedCfg = stripAndSaveCfgBlobs(S.cfg);
 
@@ -1395,7 +1371,7 @@ async function loadPageFromDrive(dateStr) {
   return null;
 }
 
-// ── Page data ─────────────────────────────────────────────
+// Page data
 function page(d) {
   if (!S.pages[d]) S.pages[d] = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
   return S.pages[d];
@@ -1420,7 +1396,7 @@ function carryChecklist(d) {
   save();
 }
 
-// ── Render page ───────────────────────────────────────────
+// Render page
 function renderPage(d) {
   const pg = page(d);
   carryChecklist(d);
@@ -1437,7 +1413,7 @@ function renderPage(d) {
   document.getElementById('diary-ta').style.display = '';
   document.getElementById('diary-formatted').style.display = 'none';
   const dvt = document.getElementById('diary-view-toggle');
-  if (dvt) { dvt.classList.remove('on'); dvt.textContent = '📖 View'; }
+  if (dvt) { dvt.classList.remove('on'); dvt.textContent = 'View'; }
 
   renderImp(pg); renderCheck(pg); renderRecs(pg);
   setTimeout(syncDiaryHeight, 50);
@@ -1478,7 +1454,7 @@ function oldestAllowedDate() {
 }
 function canGoPrev(d) { return d > oldestAllowedDate(); }
 
-// ── Important (global, persistent across days) ─────────────
+// Important (global, persistent across days)
 // Visibility rule for a given viewed day `d`:
 //   - item.addedOn must be <= d (it existed by that day)
 //   - if not removed -> show normal
@@ -1526,7 +1502,7 @@ function renderImp(pg) {
             onblur="updExplanation('${i.id}','imp',this.textContent)"
           >${esc(i.explanation||'')}</div>
         </div>
-        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','imp')">📝 Explain</button>` : ''}
+        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','imp')">Explain</button>` : ''}
       </div>
       <button class="imp-del" onclick="delImp('${i.id}')" title="Remove (today)">×</button>
     </div>`;
@@ -1552,7 +1528,7 @@ function delImp(id) {
   toast('Marked as removed today');
 }
 
-// ── Checklist ─────────────────────────────────────────────
+// Checklist
 function renderCheck(pg) {
   const el = document.getElementById('check-list');
   el.innerHTML = (pg.check||[]).map(i => {
@@ -1593,7 +1569,7 @@ function renderCheck(pg) {
           </div>
           <button class="check-del" onclick="delCheck('${i.id}')">×</button>
         </div>
-        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','check')">📝 Explain</button>` : ''}
+        ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','check')">Explain</button>` : ''}
         <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
           <div class="explanation-text" contenteditable="true" spellcheck="false"
             data-ph="Add an explanation..."
@@ -1693,7 +1669,7 @@ function clearDone() {
   save(); renderCheck(pg); toast('Cleared completed tasks'); setTimeout(syncDiaryHeight, 50);
 }
 
-// ── Subtasks ──────────────────────────────────────────────
+// Subtasks
 function showAddSubtask(parentId) {
   const list = document.getElementById('subs-' + parentId);
   const row  = document.getElementById('addsub-row-' + parentId);
@@ -1734,7 +1710,7 @@ function updSubtask(parentId, subId, text) {
   if (sub) { sub.text = text.trim(); save(); }
 }
 
-// ── Explanations ──────────────────────────────────────────
+// Explanations
 function toggleExplanation(id, kind) {
   const wrap = document.getElementById('expl-' + id); if (!wrap) return;
   const hidden = wrap.style.display === 'none';
@@ -1752,17 +1728,17 @@ function updExplanation(id, kind, text) {
   if (item) { item.explanation = text.trim(); save(); }
 }
 
-// ── AI: explain + subtasks ────────────────────────────────
+// AI: explain + subtasks
 async function aiExplain(id, kind) {
   const key = activeKey();
-  if (!key) { toast('Add a Gemini API key in Settings ⚙️'); return; }
+  if (!key) { toast('Add a Gemini API key in Settings'); return; }
   const pg   = page(curDate);
   const list = kind === 'imp' ? (S.global.important||[]) : pg.check;
   const item = list.find(x => x.id === id);
   if (!item) return;
 
   const isImp = kind === 'imp';
-  toast('✨ Asking Gemini…', 5000);
+  toast('Asking Gemini…', 5000);
 
   const prompt = isImp
     ? `For this important note: "${item.text}"
@@ -1807,13 +1783,13 @@ Return JSON only, no markdown:
     if (isImp) renderImp(pg); else renderCheck(pg);
     const wrap = document.getElementById('expl-' + id);
     if (wrap && item.explanation) wrap.style.display = '';
-    toast('✨ Done!');
+    toast('Done!');
   } catch (e) {
     toast('AI error: ' + e.message);
   }
 }
 
-// ── Diary ─────────────────────────────────────────────────
+// Diary
 function saveDiary() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
@@ -1866,21 +1842,19 @@ function toggleDiaryView() {
     // Switch to edit mode
     fmt.style.display = 'none';
     ta.style.display = '';
-    btn.classList.remove('on'); btn.textContent = '📖 View';
+    btn.classList.remove('on'); btn.textContent = 'View';
     setTimeout(() => ta.focus(), 0);
   } else {
     // Switch to formatted view
     fmt.innerHTML = renderDiaryMarkdown(ta.value);
     fmt.style.display = '';
     ta.style.display = 'none';
-    btn.classList.add('on'); btn.textContent = '✏️ Edit';
+    btn.classList.add('on'); btn.textContent = 'Edit';
   }
 }
 
 
-// ════════════════════════════════════════════════════════
-//  RECORDINGS, full-featured cards
-// ════════════════════════════════════════════════════════
+// RECORDINGS, full-featured cards
 function renderRecs(pg) {
   const el = document.getElementById('rec-list');
   el.innerHTML = (pg.recs||[]).map(r => {
@@ -1891,14 +1865,13 @@ function renderRecs(pg) {
     return `
     <div class="rec-card" id="rc-${r.id}">
       <div class="rec-name-row">
-        🎙️
         <div class="rec-name-edit" contenteditable="true" spellcheck="false"
           onblur="updRec('${r.id}',this.textContent)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
         >${esc(r.name)}</div>
         <div class="rec-card-btns">
           ${hasAudio
-            ? `<button class="rec-audio-del" onclick="delRecAudio('${r.id}')" title="Remove audio file">🗑 Audio</button>`
+            ? `<button class="rec-audio-del" onclick="delRecAudio('${r.id}')" title="Remove audio file">Remove audio</button>`
             : ''}
           <button class="rec-del" onclick="delRec('${r.id}')" title="Delete this recording">×</button>
         </div>
@@ -1908,13 +1881,13 @@ function renderRecs(pg) {
         : `<div class="rec-no-audio">Audio removed, transcript preserved</div>`
       }
       <div class="rec-meta">
-        <span>📅 ${esc(r.time)}</span>
-        <span>🎵 ${esc(r.file)}</span>
+        <span>${esc(r.time)}</span>
+        <span>${esc(r.file)}</span>
         ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
       </div>
       <div class="rec-tx-header">
         <button class="rec-transcript-btn" onclick="toggleTx('${r.id}')">
-          ${r.transcript ? '📄 Show transcript' : '📄 Add transcript'}
+          ${r.transcript ? 'Show transcript' : 'Add transcript'}
         </button>
         ${wordCount ? `<span class="rec-tx-words">${wordCount} words</span>` : ''}
       </div>
@@ -1937,10 +1910,10 @@ function toggleTx(id) {
   if (btn) {
     const hasContent = (el.textContent||'').trim().length > 0;
     if (willOpen) {
-      btn.textContent = '📄 Hide transcript';
+      btn.textContent = 'Hide transcript';
       setTimeout(() => el.focus(), 0);
     } else {
-      btn.textContent = hasContent ? '📄 Show transcript' : '📄 Add transcript';
+      btn.textContent = hasContent ? 'Show transcript' : 'Add transcript';
     }
   }
 }
@@ -1975,7 +1948,7 @@ function updRecTranscript(id, text) {
     // Update toggle button label
     const btn = card.querySelector('.rec-transcript-btn');
     if (btn && !btn.textContent.includes('Hide')) {
-      btn.textContent = r.transcript ? '📄 Show transcript' : '📄 Add transcript';
+      btn.textContent = r.transcript ? 'Show transcript' : 'Add transcript';
     }
   }
 }
@@ -2071,7 +2044,7 @@ async function procAudio(file) {
 
     page(curDate).recs.push({ id:recId, name, file:file.name, data, time, size:file.size, transcript, at:ph.toISOString() });
     save(); renderRecs(page(curDate));
-    toast('🎙️ Recording added!');
+    toast('Recording added!');
   } catch(e) {
     toast('Error: ' + e.message);
   } finally {
@@ -2181,7 +2154,7 @@ Return JSON only, no markdown fences:
 
 function syncDiaryHeight() { /* no-op */ }
 
-// ── Navigation ────────────────────────────────────────────
+// Navigation
 function navPage(dir) {
   const all = Object.keys(S.pages).sort();
   const idx = all.indexOf(curDate);
@@ -2226,7 +2199,7 @@ function flip(dir) {
   setTimeout(() => b.classList.remove(cls), 440);
 }
 
-// ── Clock ─────────────────────────────────────────────────
+// Clock
 function startClock() {
   function tick() {
     const el = document.getElementById('hdr-time');
@@ -2236,7 +2209,7 @@ function startClock() {
   setInterval(tick, 1000);
 }
 
-// ── Calendar ──────────────────────────────────────────────
+// Calendar
 function renderCal() {
   const y = calView.getFullYear(), m = calView.getMonth();
   const months = ['January','February','March','April','May','June',
@@ -2266,7 +2239,7 @@ function renderCal() {
 }
 function calMov(dir) { calView.setMonth(calView.getMonth()+dir); renderCal(); }
 
-// ── Modals ────────────────────────────────────────────────
+// Modals
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if (id==='cal-modal') renderCal();
@@ -2277,7 +2250,7 @@ document.querySelectorAll('.modal-back').forEach(el => {
   el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); });
 });
 
-// ── API Keys ──────────────────────────────────────────────
+// API Keys
 function activeKey() { return (S.cfg.keys.find(k=>k.active)||S.cfg.keys[0])?.key||null; }
 function addKey() {
   const lbl = document.getElementById('new-key-lbl').value.trim()||('Key '+(S.cfg.keys.length+1));
@@ -2302,13 +2275,13 @@ function renderKeys() {
     return `<div class="key-item">
       <span class="key-lbl">${esc(k.label)}</span>
       <span class="key-val" title="${esc(k.key)}">${masked}</span>
-      ${k.active?`<span class="key-active-chip">✓ Active</span>`:`<button onclick="setKey('${k.id}')" style="font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--paper);cursor:pointer;color:var(--ink3)">Use</button>`}
+      ${k.active?`<span class="key-active-chip">Active</span>`:`<button onclick="setKey('${k.id}')" style="font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--paper);cursor:pointer;color:var(--ink3)">Use</button>`}
       <button onclick="delKey('${k.id}')" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;flex-shrink:0">×</button>
     </div>`;
   }).join('');
 }
 
-// ── Theme ─────────────────────────────────────────────────
+// Theme
 function setTheme(t) {
   S.cfg.theme = t; save();
   document.documentElement.setAttribute('data-theme', t==='default'?'':t);
@@ -2316,7 +2289,7 @@ function setTheme(t) {
   toast('Theme changed');
 }
 
-// ── Fonts ─────────────────────────────────────────────────
+// Fonts
 const BUILTIN = [
   {name:'Handwriting (Default)', css:'handwriting,cursive', builtin:true},
   {name:'Caveat',                css:"'Caveat',cursive",    builtin:true},
@@ -2354,13 +2327,13 @@ function renderFonts() {
   el.innerHTML = all.map(f => `
     <div class="font-item">
       <span class="font-name-lbl">${esc(f.name)}</span>
-      <span class="font-preview-txt" style="font-family:${f.css}">Aa Dear Diary 📔</span>
+      <span class="font-preview-txt" style="font-family:${f.css}">Aa Dear Diary</span>
       <button class="font-use-btn${S.cfg.font===f.css?' on':''}" onclick="setFont('${f.css.replace(/'/g,"\\'")}','${esc(f.name)}')">${S.cfg.font===f.css?'✓':'Use'}</button>
       ${!f.builtin?`<button onclick="delFont('${f.id}')" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px">×</button>`:''}
     </div>`).join('');
 }
 
-// ── SFX ──────────────────────────────────────────────────
+// SFX
 function loadSfx(type, el) {
   const f = el.files[0]; if (!f) return;
   const r = new FileReader();
@@ -2382,20 +2355,18 @@ function restoreSfx() {
   ['flip','write','check'].forEach(t => {
     if (S.cfg.sfx[t]) sfxBufs[t] = new Audio(S.cfg.sfx[t]);
     const n = document.getElementById('sfx-'+t+'-name');
-    if (n) n.textContent = S.cfg.sfx[t] ? 'Loaded ✓' : 'None';
+    if (n) n.textContent = S.cfg.sfx[t] ? 'Loaded' : 'None';
   });
 }
 
-// ── Line height ───────────────────────────────────────────
+// Line height
 function setLH(v) {
   S.cfg.lh = +v; save();
   document.documentElement.style.setProperty('--line-h', v+'px');
   document.getElementById('lh-val').textContent = v+'px';
 }
 
-// ════════════════════════════════════════════════════════
-//  GOOGLE DRIVE
-// ════════════════════════════════════════════════════════
+// GOOGLE DRIVE
 function renderDriveStatus() {
   const el = document.getElementById('drive-status'); if (!el) return;
   const d = S.cfg.drive || {};
@@ -2403,7 +2374,7 @@ function renderDriveStatus() {
     el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Session expired, click "Sync Now" to reconnect</div>`;
   } else if (d.on) {
     const when = d.lastSync ? new Date(d.lastSync).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}) : 'not yet';
-    const fileLink = d.fileId ? `<a href="https://drive.google.com/file/d/${d.fileId}/view" target="_blank" style="color:var(--accent);font-size:11px;display:block;margin-top:3px">📄 View backup file on Drive ↗</a>` : '';
+    const fileLink = d.fileId ? `<a href="https://drive.google.com/file/d/${d.fileId}/view" target="_blank" style="color:var(--accent);font-size:11px;display:block;margin-top:3px">View backup file on Drive</a>` : '';
     const scopeNote = IS_HTTPS
       ? ''
       : `<p style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);margin:4px 0 0">Running on HTTP, using <code>drive.file</code> scope. The folder won't appear when browsing Drive normally, but your data is safely backed up via the link above. Host on HTTPS for full Drive visibility.</p>`;
@@ -2413,7 +2384,7 @@ function renderDriveStatus() {
   }
   const chip = document.getElementById('drive-chip');
   if (chip) {
-    chip.textContent = d.on ? (d.needsReconnect ? '⚠️ Drive (tap to fix)' : '☁️ Synced') : '';
+    chip.textContent = d.on ? (d.needsReconnect ? 'Drive (tap to fix)' : 'Synced') : '';
     chip.style.display = d.on ? 'inline' : 'none';
     chip.style.cursor = d.needsReconnect ? 'pointer' : 'default';
     chip.onclick = d.needsReconnect ? () => syncNow({allowPrompt:true}) : null;
@@ -2573,7 +2544,7 @@ async function connectDrive() {
     renderDriveStatus();
 
     await syncNow({ allowPrompt: true });
-    toast('Connected to Google Drive ✓');
+    toast('Connected to Google Drive');
   } catch (e) {
     console.error('[Drive] connectDrive failed:', e);
     toast('Could not connect, check the browser console for details');
@@ -2681,8 +2652,8 @@ async function syncNow(opts={}) {
     delete S.cfg.drive.needsReconnect;
     persistLocal();
     renderDriveStatus();
-    console.log('[Drive] Sync complete ✓');
-    if (allowPrompt) toast('Synced to Drive ✓');
+    console.log('[Drive] Sync complete');
+    if (allowPrompt) toast('Synced to Drive');
   } catch (e) {
     console.error('[Drive] syncNow error:', e);
     const justExpired = !S.cfg.drive.needsReconnect;
@@ -2754,7 +2725,7 @@ function disconnectDrive() {
   toast('Disconnected');
 }
 
-// ── Export / Import ───────────────────────────────────────
+// Export / Import
 function exportAll() {
   const b = new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(b);
@@ -2787,7 +2758,7 @@ function confirmClear() {
   }
 }
 
-// ── Settings render ───────────────────────────────────────
+// Settings render
 function renderSettings() {
   renderKeys(); renderFonts(); renderDriveStatus();
   document.getElementById('lh-slider').value = S.cfg.lh;
@@ -2796,7 +2767,7 @@ function renderSettings() {
   restoreSfx();
 }
 
-// ── Keyboard shortcuts ────────────────────────────────────
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const ce  = document.activeElement?.contentEditable;
@@ -2806,7 +2777,7 @@ document.addEventListener('keydown', e => {
   if (e.key==='t'||e.key==='T') goToToday();
 });
 
-// ── Restore custom fonts ──────────────────────────────────
+// Restore custom fonts
 function restoreFonts() {
   S.cfg.fonts.forEach(f => {
     const s = document.createElement('style');
@@ -2815,7 +2786,7 @@ function restoreFonts() {
   });
 }
 
-// ── Init ──────────────────────────────────────────────────
+// Init
 async function init() {
   load();
   restoreFonts();

@@ -549,7 +549,7 @@ body {
   flex: 1; min-width: 0;
 }
 .rec-card-btns { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
-/* "🗑 Audio" button — only visible on hover */
+/* "🗑 Audio" button, only visible on hover */
 .rec-audio-del {
   opacity: 0; background: none; border: 1px solid var(--line);
   color: var(--ink3); padding: 2px 7px; border-radius: 6px; cursor: pointer;
@@ -587,7 +587,7 @@ body {
 }
 .rec-transcript-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
 .rec-tx-words { font-size: 10px; color: var(--ink3); font-family: var(--font-ui); }
-/* Transcript area — scrollable, editable, hidden by default */
+/* Transcript area, scrollable, editable, hidden by default */
 .rec-transcript {
   background: var(--paper); border-left: 3px solid var(--accent-light);
   padding: 7px 10px; border-radius: 0 6px 6px 0;
@@ -601,7 +601,7 @@ body {
 .rec-transcript.open { display: block; }
 .rec-transcript:focus { border-left-color: var(--accent); background: var(--paper); }
 .rec-transcript:empty::before {
-  content: 'No transcript yet — type one here or upload an audio to generate one…';
+  content: 'No transcript yet, type one here or upload an audio to generate one…';
   opacity: 0.4; font-style: italic; pointer-events: none;
 }
 
@@ -896,7 +896,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
   </div>
 </div>
 
-<a id="inbox-fab" href="inbox.html" title="Audio Inbox — upload &amp; assign recordings">🎙️</a>
+<a id="inbox-fab" href="inbox.html" title="Audio Inbox, upload &amp; assign recordings">🎙️</a>
 
 <div id="app">
   <div id="book-wrap">
@@ -1073,7 +1073,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
         <button class="btn" id="drive-folder-btn" onclick="openDriveFolder()" style="display:none">View Backup File</button>
         <button class="btn btn-danger" id="drive-dis-btn" onclick="disconnectDrive()" style="display:none">Disconnect</button>
       </div>
-      <p style="font-size:11px;color:var(--ink3);font-family:var(--font-ui);margin-top:7px">Works offline — saves locally, backs up to a "My Diary" folder on Drive in the background while connected.</p>
+      <p style="font-size:11px;color:var(--ink3);font-family:var(--font-ui);margin-top:7px">Works offline, saves locally, backs up to a "My Diary" folder on Drive in the background while connected.</p>
     </div>
 
     <div class="set-sec">
@@ -1164,7 +1164,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 
 <script>
 // ════════════════════════════════════════════════════════
-//  DIARY APP — JavaScript
+//  DIARY APP, JavaScript
 // ════════════════════════════════════════════════════════
 
 const STORE = 'diary_v2';
@@ -1325,7 +1325,7 @@ function persistLocal() {
     const localPages = {};
     for (const k of keepKeys) { if (S.pages[k]) localPages[k] = S.pages[k]; }
 
-    // ── FIX: destructure { stripped } — don't store the wrapper object as pages ──
+    // ── FIX: destructure { stripped }, don't store the wrapper object as pages ──
     const { stripped: strippedPages } = stripAndSaveBlobs(localPages);
     const strippedCfg = stripAndSaveCfgBlobs(S.cfg);
 
@@ -1879,7 +1879,7 @@ function toggleDiaryView() {
 
 
 // ════════════════════════════════════════════════════════
-//  RECORDINGS — full-featured cards
+//  RECORDINGS, full-featured cards
 // ════════════════════════════════════════════════════════
 function renderRecs(pg) {
   const el = document.getElementById('rec-list');
@@ -1905,7 +1905,7 @@ function renderRecs(pg) {
       </div>
       ${hasAudio
         ? `<audio class="rec-audio" controls src="${r.data}"></audio>`
-        : `<div class="rec-no-audio">Audio removed — transcript preserved</div>`
+        : `<div class="rec-no-audio">Audio removed, transcript preserved</div>`
       }
       <div class="rec-meta">
         <span>📅 ${esc(r.time)}</span>
@@ -1989,7 +1989,7 @@ function delRecAudio(id) {
   deleteBlob(id);
   save();
   renderRecs(page(curDate));
-  toast('Audio removed — transcript kept');
+  toast('Audio removed, transcript kept');
 }
 
 function delRec(id) {
@@ -2012,7 +2012,7 @@ function setStt(m) {
 function fingerprint(name, size) { return `${name}::${size}`; }
 
 // Check all known pages (local cache + Drive backup if connected) for a matching
-// filename+size — catches re-uploading the same recording you already added.
+// filename+size, catches re-uploading the same recording you already added.
 async function findDupeRecording(name, size) {
   const fp = fingerprint(name, size);
   for (const [date, pg] of Object.entries(S.pages)) {
@@ -2029,7 +2029,7 @@ async function findDupeRecording(name, size) {
           if (fingerprint(r.file, r.size) === fp) return { date, recName: r.name };
         }
       }
-    } catch(e) { /* best effort — skip silently if Drive check fails */ }
+    } catch(e) { /* best effort, skip silently if Drive check fails */ }
   }
   return null;
 }
@@ -2105,7 +2105,7 @@ Return JSON only, no markdown: {"transcript":"...","name":"..."}`}
 async function browserSTT(file) {
   return new Promise((res,rej) => {
     const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
-    if (!SR) { res('[Browser STT not supported — use Gemini]'); return; }
+    if (!SR) { res('[Browser STT not supported, use Gemini]'); return; }
     const r = new SR(); r.continuous=true; r.lang='en-PH';
     const parts = [];
     r.onresult = e => { for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) parts.push(e.results[i][0].transcript); };
@@ -2121,13 +2121,13 @@ async function geminiParse(transcript, recName, ph, key) {
   const body = {
     model:'gemini-2.5-flash-lite',
     contents:[{parts:[{text:`You are a personal diary assistant. From this voice memo, extract:
-1. diary entry text — narrative, 1st person, natural, well-organized. Format it using simple Markdown:
+1. diary entry text, narrative, 1st person, natural, well-organized. Format it using simple Markdown:
    - use "## " for a short title/heading if appropriate
    - use "- " for bullet lists where it helps (e.g. listing multiple separate things that happened)
    - use "1. " for numbered steps/sequences if relevant
    - use "**bold**" sparingly for emphasis on key moments
    - otherwise just write normal paragraphs separated by blank lines
-2. important things to remember (array of short strings) — only lasting/persistent facts worth remembering long-term, not one-off events
+2. important things to remember (array of short strings), only lasting/persistent facts worth remembering long-term, not one-off events
 3. tasks/checklist items (array of objects)
    Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
    - "explanation" is optional: a 1-sentence note about what this task involves
@@ -2400,16 +2400,16 @@ function renderDriveStatus() {
   const el = document.getElementById('drive-status'); if (!el) return;
   const d = S.cfg.drive || {};
   if (d.on && d.needsReconnect) {
-    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Session expired — click "Sync Now" to reconnect</div>`;
+    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Session expired, click "Sync Now" to reconnect</div>`;
   } else if (d.on) {
     const when = d.lastSync ? new Date(d.lastSync).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}) : 'not yet';
     const fileLink = d.fileId ? `<a href="https://drive.google.com/file/d/${d.fileId}/view" target="_blank" style="color:var(--accent);font-size:11px;display:block;margin-top:3px">📄 View backup file on Drive ↗</a>` : '';
     const scopeNote = IS_HTTPS
       ? ''
-      : `<p style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);margin:4px 0 0">Running on HTTP — using <code>drive.file</code> scope. The folder won't appear when browsing Drive normally, but your data is safely backed up via the link above. Host on HTTPS for full Drive visibility.</p>`;
-    el.innerHTML = `<div class="drive-row on"><div class="dot green"></div>Connected — last synced ${esc(when)}</div>${fileLink}${scopeNote}`;
+      : `<p style="font-size:10px;color:var(--ink3);font-family:var(--font-ui);margin:4px 0 0">Running on HTTP, using <code>drive.file</code> scope. The folder won't appear when browsing Drive normally, but your data is safely backed up via the link above. Host on HTTPS for full Drive visibility.</p>`;
+    el.innerHTML = `<div class="drive-row on"><div class="dot green"></div>Connected, last synced ${esc(when)}</div>${fileLink}${scopeNote}`;
   } else {
-    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Not connected — data saved locally</div>`;
+    el.innerHTML = `<div class="drive-row off"><div class="dot gray"></div>Not connected, data saved locally</div>`;
   }
   const chip = document.getElementById('drive-chip');
   if (chip) {
@@ -2554,7 +2554,7 @@ document.addEventListener('visibilitychange', () => {
 async function connectDrive() {
   const cidVal = (MY_CLIENT_ID || S.cfg.drive?.clientId || '').trim();
   if (!cidVal || cidVal === 'YOUR_CLIENT_ID_HERE') { toast('Add your Client ID to the top of the file first'); return; }
-  if (!window.google?.accounts?.oauth2) { toast('Google sign-in script not loaded — check your connection'); return; }
+  if (!window.google?.accounts?.oauth2) { toast('Google sign-in script not loaded, check your connection'); return; }
   S.cfg.drive = { ...(S.cfg.drive||{}), clientId: cidVal };
   tokenClient = null;
   try {
@@ -2576,7 +2576,7 @@ async function connectDrive() {
     toast('Connected to Google Drive ✓');
   } catch (e) {
     console.error('[Drive] connectDrive failed:', e);
-    toast('Could not connect — check the browser console for details');
+    toast('Could not connect, check the browser console for details');
   }
 }
 
@@ -2584,12 +2584,12 @@ async function syncNow(opts={}) {
   const allowPrompt = opts.allowPrompt !== false;
   if (!S.cfg.drive?.on) { if (allowPrompt) toast('Connect Drive first'); return; }
   try {
-    console.log('[Drive] syncNow start — allowPrompt:', allowPrompt);
+    console.log('[Drive] syncNow start, allowPrompt:', allowPrompt);
     const token = await getValidToken(allowPrompt);
     if (!token) {
       S.cfg.drive.needsReconnect = true;
       persistLocal(); renderDriveStatus();
-      if (allowPrompt) toast('Session expired — reconnect Drive in Settings');
+      if (allowPrompt) toast('Session expired, reconnect Drive in Settings');
       return;
     }
 
@@ -2688,8 +2688,8 @@ async function syncNow(opts={}) {
     const justExpired = !S.cfg.drive.needsReconnect;
     S.cfg.drive.needsReconnect = true;
     persistLocal(); renderDriveStatus();
-    if (allowPrompt) toast('Sync failed — check browser console for details');
-    else if (justExpired) toast('Drive session expired — reconnect in Settings');
+    if (allowPrompt) toast('Sync failed, check browser console for details');
+    else if (justExpired) toast('Drive session expired, reconnect in Settings');
   }
 }
 
@@ -2727,7 +2727,7 @@ async function restoreFromDrive() {
     }
   } catch (e) {
     console.error(e);
-    toast('Restore failed — open the console for details');
+    toast('Restore failed, open the console for details');
   }
 }
 
@@ -2739,7 +2739,7 @@ function openDriveFolder() {
   } else if (folderId) {
     window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
   } else {
-    toast('No Drive file yet — sync first');
+    toast('No Drive file yet, sync first');
   }
 }
 

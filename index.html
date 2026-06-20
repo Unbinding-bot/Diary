@@ -278,6 +278,31 @@ body {
   font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
 }
 #page-right .page-hdr { padding-left: 36px; }
+.diary-view-toggle {
+  background: var(--accent-light); border: 1px solid var(--line); color: var(--accent2);
+  font-family: var(--font-ui); font-size: 11px; padding: 4px 9px; border-radius: 6px;
+  cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+}
+.diary-view-toggle:hover { background: var(--accent); color: #fff; }
+.diary-view-toggle.on { background: var(--accent); color: #fff; }
+.diary-formatted {
+  font-family: var(--font-main); font-size: 19px; color: var(--ink);
+  line-height: var(--line-h); cursor: text; flex: 1;
+}
+.diary-formatted h1, .diary-formatted h2, .diary-formatted h3 {
+  font-family: var(--font-main); color: var(--accent2); margin: 10px 0 4px; line-height: 1.2;
+}
+.diary-formatted h1 { font-size: 26px; }
+.diary-formatted h2 { font-size: 23px; }
+.diary-formatted h3 { font-size: 20px; }
+.diary-formatted p { margin: 0 0 8px; }
+.diary-formatted ul, .diary-formatted ol { margin: 0 0 8px; padding-left: 28px; }
+.diary-formatted li { margin-bottom: 2px; }
+.diary-formatted strong { color: var(--accent2); }
+.diary-formatted em { color: var(--ink2); }
+.diary-formatted .diary-empty-note {
+  color: var(--ink3); font-style: italic; font-size: 15px; font-family: var(--font-ui);
+}
 
 .page-body {
   flex: 1; overflow-y: auto; position: relative; z-index: 2;
@@ -367,6 +392,10 @@ body {
   display: flex; gap: 1px; opacity: 0; transition: opacity 0.18s; flex-shrink: 0; margin-left: auto;
 }
 .imp-item:hover .imp-actions { opacity: 1; }
+.imp-item.imp-removed { opacity: 0.65; }
+.imp-item.imp-removed .imp-text { text-decoration: line-through; color: var(--ink3); }
+.imp-item.imp-removed .imp-bullet { color: var(--ink3); }
+.imp-removed-note { font-size: 11px; font-family: var(--font-ui); color: var(--ink3); font-style: italic; margin-top: 2px; }
 
 /* Explanations */
 .explanation-wrap { margin-top: 3px; padding-left: 1px; }
@@ -827,6 +856,21 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
   #toast { bottom: 80px; }
 }
 
+/* Floating Audio Inbox button */
+#inbox-fab {
+  position: fixed; right: 18px; bottom: 22px; z-index: 200;
+  background: var(--accent); color: #fff; border: none;
+  width: 54px; height: 54px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer; text-decoration: none;
+  box-shadow: 0 4px 14px var(--shadow); transition: transform 0.18s, background 0.18s;
+}
+#inbox-fab:hover { transform: scale(1.08); background: var(--accent2); }
+@media (max-width: 768px) {
+  #inbox-fab { right: 14px; bottom: 84px; width: 48px; height: 48px; font-size: 21px; }
+}
+
+
 /* Scrollbars */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -851,6 +895,8 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
     <button class="tb-btn" onclick="openModal('set-modal')">⚙️ Settings</button>
   </div>
 </div>
+
+<a id="inbox-fab" href="inbox.html" title="Audio Inbox — upload &amp; assign recordings">🎙️</a>
 
 <div id="app">
   <div id="book-wrap">
@@ -946,12 +992,14 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
       <div id="page-right" class="ruled-page">
         <div class="page-hdr">
           <div class="page-hdr-date" id="hdr-date-r" onclick="openModal('cal-modal')">How was your day?</div>
+          <button class="diary-view-toggle" id="diary-view-toggle" onclick="toggleDiaryView()" title="Toggle formatted view">📖 View</button>
         </div>
         <div class="page-body" id="right-body" style="display:flex;flex-direction:column;">
           <div class="diary-wrap" style="flex:1;display:flex;flex-direction:column;">
             <textarea class="diary-ta" id="diary-ta"
               placeholder="Write about today... what happened, how you felt, what you're thinking about."
               oninput="saveDiary()"></textarea>
+            <div class="diary-formatted" id="diary-formatted" style="display:none" onclick="toggleDiaryView()"></div>
           </div>
         </div>
       </div>
@@ -1123,6 +1171,7 @@ const STORE = 'diary_v2';
 let S = {
   pages: {},
   archivedKeys: [],
+  global: { important: [] },
   cfg: {
     theme: 'default', font: "'Caveat',cursive", lh: 34,
     stt: 'gemini', keys: [], drive: {on:false}, sfx: {},
@@ -1280,7 +1329,7 @@ function persistLocal() {
     const { stripped: strippedPages } = stripAndSaveBlobs(localPages);
     const strippedCfg = stripAndSaveCfgBlobs(S.cfg);
 
-    const payload = { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [] };
+    const payload = { pages: strippedPages, cfg: strippedCfg, archivedKeys: S.archivedKeys || [], global: S.global || { important: [] } };
     localStorage.setItem(STORE, JSON.stringify(payload));
   } catch(e) {
     console.error('persistLocal failed:', e);
@@ -1303,6 +1352,27 @@ function load() {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) delete S.pages[k];
     }
     S.archivedKeys = p.archivedKeys || [];
+    S.global = p.global || { important: [] };
+    if (!Array.isArray(S.global.important)) S.global.important = [];
+    // One-time migration: pull any legacy per-page `imp` items into the global list
+    let migrated = false;
+    for (const [date, pg] of Object.entries(S.pages)) {
+      if (Array.isArray(pg.imp) && pg.imp.length) {
+        for (const old of pg.imp) {
+          S.global.important.push({
+            id: old.id || uid(),
+            text: old.text,
+            addedOn: date,
+            removedOn: null,
+            explanation: old.explanation || null,
+            at: old.at || new Date().toISOString()
+          });
+        }
+        pg.imp = [];
+        migrated = true;
+      }
+    }
+    if (migrated) console.log('[Migration] Moved legacy per-page Important items into global list');
     if (p.cfg) S.cfg = { ...S.cfg, ...p.cfg, drive: {...S.cfg.drive,...(p.cfg.drive||{})}, sfx: {...(p.cfg.sfx||{})} };
     reattachBlobs(S.pages);
     reattachCfgBlobs(S.cfg);
@@ -1364,6 +1434,10 @@ function renderPage(d) {
   document.getElementById('hdr-page-num').textContent = 'Page ' + (idx >= 0 ? idx+1 : 1);
 
   document.getElementById('diary-ta').value = pg.diary || '';
+  document.getElementById('diary-ta').style.display = '';
+  document.getElementById('diary-formatted').style.display = 'none';
+  const dvt = document.getElementById('diary-view-toggle');
+  if (dvt) { dvt.classList.remove('on'); dvt.textContent = '📖 View'; }
 
   renderImp(pg); renderCheck(pg); renderRecs(pg);
   setTimeout(syncDiaryHeight, 50);
@@ -1387,40 +1461,65 @@ function renderPage(d) {
   document.getElementById('mob-date-input').max = today;
 }
 
-function hasContent(pg) {
+function hasContent(pg, date) {
   if (!pg) return false;
   if ((pg.diary||'').trim()) return true;
-  if ((pg.imp||[]).length) return true;
   if ((pg.check||[]).length) return true;
   if ((pg.recs||[]).length) return true;
+  if (date && (S.global.important||[]).some(i => i.addedOn === date)) return true;
   return false;
 }
 function oldestAllowedDate() {
   const today = phToday();
   const withContent = Object.keys(S.pages)
-    .filter(k => k === today || hasContent(S.pages[k]))
+    .filter(k => k === today || hasContent(S.pages[k], k))
     .sort();
   return withContent.length ? withContent[0] : today;
 }
 function canGoPrev(d) { return d > oldestAllowedDate(); }
 
-// ── Important ─────────────────────────────────────────────
+// ── Important (global, persistent across days) ─────────────
+// Visibility rule for a given viewed day `d`:
+//   - item.addedOn must be <= d (it existed by that day)
+//   - if not removed -> show normal
+//   - if removed:
+//       - if d === removedOn -> show struck-through, "removed today"
+//       - if d > removedOn   -> hidden entirely
+//       - if d < removedOn   -> show normal (wasn't removed yet on that day)
+function visibleImportantFor(d) {
+  return (S.global.important || []).filter(i => {
+    if (i.addedOn > d) return false;
+    if (i.removedOn) {
+      if (d > i.removedOn) return false; // gone for good after that day
+    }
+    return true;
+  }).sort((a,b) => a.addedOn.localeCompare(b.addedOn));
+}
+
 function renderImp(pg) {
   const el = document.getElementById('imp-list');
-  el.innerHTML = (pg.imp||[]).map(i => `
-    <div class="imp-item">
-      <span class="imp-bullet">★</span>
+  const items = visibleImportantFor(curDate);
+  el.innerHTML = items.map(i => {
+    const isRemovedToday = i.removedOn && i.removedOn === curDate;
+    const removedNote = isRemovedToday
+      ? `<div class="imp-removed-note">Removed on ${esc(fmtDate(i.removedOn))}</div>`
+      : '';
+    return `
+    <div class="imp-item ${isRemovedToday ? 'imp-removed' : ''}">
+      <span class="imp-bullet">${isRemovedToday ? '☆' : '★'}</span>
       <div class="imp-main">
         <div class="imp-text-row">
-          <div class="imp-text" contenteditable="true" spellcheck="false"
+          <div class="imp-text" contenteditable="${isRemovedToday ? 'false' : 'true'}" spellcheck="false"
             onblur="updImp('${i.id}',this.textContent)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
           >${esc(i.text)}</div>
+          ${!isRemovedToday ? `
           <div class="imp-actions">
             <button class="check-action-btn" title="Explanation" onclick="toggleExplanation('${i.id}','imp')">💬</button>
             <button class="check-action-btn" title="AI explain" onclick="aiExplain('${i.id}','imp')">✨</button>
-          </div>
+          </div>` : ''}
         </div>
+        ${removedNote}
         <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
           <div class="explanation-text" contenteditable="true" spellcheck="false"
             data-ph="Add an explanation..."
@@ -1429,25 +1528,28 @@ function renderImp(pg) {
         </div>
         ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','imp')">📝 Explain</button>` : ''}
       </div>
-      <button class="imp-del" onclick="delImp('${i.id}')">×</button>
-    </div>`).join('');
+      <button class="imp-del" onclick="delImp('${i.id}')" title="Remove (today)">×</button>
+    </div>`;
+  }).join('');
 }
 function focusAddImp() { document.getElementById('imp-input').focus(); }
 function addImp() {
   const el = document.getElementById('imp-input');
   const text = el.value.trim(); if (!text) return;
-  const pg = page(curDate);
-  pg.imp.push({ id:uid(), text, at: new Date().toISOString() });
-  save(); el.value = ''; renderImp(pg); setTimeout(syncDiaryHeight, 50);
+  S.global.important.push({ id: uid(), text, addedOn: phToday(), removedOn: null, at: new Date().toISOString() });
+  save(); el.value = ''; renderImp(page(curDate)); setTimeout(syncDiaryHeight, 50);
 }
 function updImp(id, text) {
-  const i = page(curDate).imp.find(x=>x.id===id);
+  const i = (S.global.important||[]).find(x=>x.id===id);
   if (i) { i.text = text.trim(); save(); }
 }
 function delImp(id) {
-  const pg = page(curDate);
-  pg.imp = pg.imp.filter(i=>i.id!==id);
-  save(); renderImp(pg); setTimeout(syncDiaryHeight, 50);
+  // Removal always stamps with TODAY'S actual date, regardless of which day is being viewed
+  const i = (S.global.important||[]).find(x=>x.id===id);
+  if (!i) return;
+  i.removedOn = phToday();
+  save(); renderImp(page(curDate)); setTimeout(syncDiaryHeight, 50);
+  toast('Marked as removed today');
 }
 
 // ── Checklist ─────────────────────────────────────────────
@@ -1645,8 +1747,7 @@ function toggleExplanation(id, kind) {
   }
 }
 function updExplanation(id, kind, text) {
-  const pg = page(curDate);
-  const list = kind === 'imp' ? pg.imp : pg.check;
+  const list = kind === 'imp' ? (S.global.important||[]) : page(curDate).check;
   const item = list.find(x => x.id === id);
   if (item) { item.explanation = text.trim(); save(); }
 }
@@ -1656,7 +1757,7 @@ async function aiExplain(id, kind) {
   const key = activeKey();
   if (!key) { toast('Add a Gemini API key in Settings ⚙️'); return; }
   const pg   = page(curDate);
-  const list = kind === 'imp' ? pg.imp : pg.check;
+  const list = kind === 'imp' ? (S.global.important||[]) : pg.check;
   const item = list.find(x => x.id === id);
   if (!item) return;
 
@@ -1720,6 +1821,62 @@ function saveDiary() {
     save(); playSfx('write');
   }, 500);
 }
+
+// Lightweight Markdown -> HTML renderer (headers, bold, italic, lists)
+function renderDiaryMarkdown(text) {
+  if (!text || !text.trim()) return '<div class="diary-empty-note">Nothing written yet for this day.</div>';
+  const lines = esc(text).split('\n');
+  let html = '';
+  let inUl = false, inOl = false;
+  const closeLists = () => {
+    if (inUl) { html += '</ul>'; inUl = false; }
+    if (inOl) { html += '</ol>'; inOl = false; }
+  };
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  for (let raw of lines) {
+    const line = raw.trim();
+    if (!line) { closeLists(); continue; }
+    let m;
+    if ((m = line.match(/^### (.+)/))) { closeLists(); html += `<h3>${inline(m[1])}</h3>`; continue; }
+    if ((m = line.match(/^## (.+)/)))  { closeLists(); html += `<h2>${inline(m[1])}</h2>`; continue; }
+    if ((m = line.match(/^# (.+)/)))   { closeLists(); html += `<h1>${inline(m[1])}</h1>`; continue; }
+    if ((m = line.match(/^[-*] (.+)/))) {
+      if (!inUl) { closeLists(); html += '<ul>'; inUl = true; }
+      html += `<li>${inline(m[1])}</li>`; continue;
+    }
+    if ((m = line.match(/^\d+\. (.+)/))) {
+      if (!inOl) { closeLists(); html += '<ol>'; inOl = true; }
+      html += `<li>${inline(m[1])}</li>`; continue;
+    }
+    closeLists();
+    html += `<p>${inline(line)}</p>`;
+  }
+  closeLists();
+  return html;
+}
+
+function toggleDiaryView() {
+  const ta  = document.getElementById('diary-ta');
+  const fmt = document.getElementById('diary-formatted');
+  const btn = document.getElementById('diary-view-toggle');
+  const showingFormatted = fmt.style.display !== 'none';
+  if (showingFormatted) {
+    // Switch to edit mode
+    fmt.style.display = 'none';
+    ta.style.display = '';
+    btn.classList.remove('on'); btn.textContent = '📖 View';
+    setTimeout(() => ta.focus(), 0);
+  } else {
+    // Switch to formatted view
+    fmt.innerHTML = renderDiaryMarkdown(ta.value);
+    fmt.style.display = '';
+    ta.style.display = 'none';
+    btn.classList.add('on'); btn.textContent = '✏️ Edit';
+  }
+}
+
 
 // ════════════════════════════════════════════════════════
 //  RECORDINGS — full-featured cards
@@ -1852,7 +2009,40 @@ function setStt(m) {
   document.querySelectorAll('.stt-btn').forEach(b => b.classList.toggle('on', b.dataset.m===m));
 }
 
+function fingerprint(name, size) { return `${name}::${size}`; }
+
+// Check all known pages (local cache + Drive backup if connected) for a matching
+// filename+size — catches re-uploading the same recording you already added.
+async function findDupeRecording(name, size) {
+  const fp = fingerprint(name, size);
+  for (const [date, pg] of Object.entries(S.pages)) {
+    for (const r of (pg.recs || [])) {
+      if (fingerprint(r.file, r.size) === fp) return { date, recName: r.name };
+    }
+  }
+  if (S.cfg.drive?.on && S.cfg.drive.fileId) {
+    try {
+      const text = await downloadBackupFile(S.cfg.drive.fileId, false);
+      const data = JSON.parse(text);
+      for (const [date, pg] of Object.entries(data.pages || {})) {
+        for (const r of (pg.recs || [])) {
+          if (fingerprint(r.file, r.size) === fp) return { date, recName: r.name };
+        }
+      }
+    } catch(e) { /* best effort — skip silently if Drive check fails */ }
+  }
+  return null;
+}
+
 async function procAudio(file) {
+  const dupe = await findDupeRecording(file.name, file.size);
+  if (dupe) {
+    const sameDay = dupe.date === curDate;
+    const msg = sameDay
+      ? `"${file.name}" looks like it's already on this day (as "${dupe.recName}"). Add it again anyway?`
+      : `"${file.name}" looks like it's already in your diary on ${dupe.date} (as "${dupe.recName}"). Add it again anyway?`;
+    if (!confirm(msg)) return;
+  }
   const prog = document.getElementById('stt-prog');
   const stat = document.getElementById('stt-status');
   prog.classList.add('on');
@@ -1931,8 +2121,13 @@ async function geminiParse(transcript, recName, ph, key) {
   const body = {
     model:'gemini-2.5-flash-lite',
     contents:[{parts:[{text:`You are a personal diary assistant. From this voice memo, extract:
-1. diary entry text (narrative, 1st person, natural)
-2. important things to remember (array of short strings)
+1. diary entry text — narrative, 1st person, natural, well-organized. Format it using simple Markdown:
+   - use "## " for a short title/heading if appropriate
+   - use "- " for bullet lists where it helps (e.g. listing multiple separate things that happened)
+   - use "1. " for numbered steps/sequences if relevant
+   - use "**bold**" sparingly for emphasis on key moments
+   - otherwise just write normal paragraphs separated by blank lines
+2. important things to remember (array of short strings) — only lasting/persistent facts worth remembering long-term, not one-off events
 3. tasks/checklist items (array of objects)
    Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
    - "explanation" is optional: a 1-sentence note about what this task involves
@@ -1940,7 +2135,7 @@ async function geminiParse(transcript, recName, ph, key) {
 
 Transcript: "${transcript}"
 
-Return JSON only, no markdown:
+Return JSON only, no markdown fences:
 {"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}`}]}],
     generationConfig:{responseMimeType:'application/json'}
   };
@@ -1954,10 +2149,12 @@ Return JSON only, no markdown:
     const pg = page(curDate);
     if (parsed.diary) {
       const sep = pg.diary ? '\n\n' : '';
-      pg.diary += sep + `[${recName}] ${parsed.diary}`;
+      pg.diary += sep + `## ${recName}\n${parsed.diary}`;
       document.getElementById('diary-ta').value = pg.diary;
     }
-    (parsed.important||[]).forEach(t => { if(t?.trim()) pg.imp.push({id:uid(),text:t.trim(),at:ph.toISOString()}); });
+    (parsed.important||[]).forEach(t => {
+      if (t?.trim()) S.global.important.push({ id:uid(), text:t.trim(), addedOn: curDate, removedOn: null, at: ph.toISOString() });
+    });
     (parsed.checklist||[]).forEach(i => {
       if (i?.text?.trim()) {
         const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
@@ -2404,6 +2601,7 @@ async function syncNow(opts={}) {
 
     let mergedPages = { ...S.pages };
     let drivePagesForFallback = null;
+    let mergedGlobal = { important: [...(S.global?.important||[])] };
     console.log('[Drive] Local pages to upload:', Object.keys(mergedPages));
     try {
       const existingFileId = S.cfg.drive.fileId;
@@ -2420,11 +2618,19 @@ async function syncNow(opts={}) {
           drivePagesForFallback = drivePages;
           console.log('[Drive] After merge, total pages:', Object.keys(mergedPages).length);
         }
+        if (driveData.global?.important) {
+          // Union by id; local copy wins on conflict (it's more recent in-session)
+          const localIds = new Set(mergedGlobal.important.map(i=>i.id));
+          for (const item of driveData.global.important) {
+            if (!localIds.has(item.id)) mergedGlobal.important.push(item);
+          }
+        }
         S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(drivePagesForFallback||{})])];
       }
     } catch(e) {
       console.warn('[Drive] Merge read failed (proceeding with local only):', e.message);
     }
+    S.global = mergedGlobal;
 
     function pagesWithBlobs(pgs) {
       const out = {};
@@ -2460,7 +2666,8 @@ async function syncNow(opts={}) {
     const content = JSON.stringify({
       pages: pagesWithBlobs(mergedPages),
       cfg: cfgWithBlobs(S.cfg),
-      archivedKeys: S.archivedKeys || []
+      archivedKeys: S.archivedKeys || [],
+      global: S.global || { important: [] }
     });
     console.log('[Drive] Uploading', content.length, 'bytes…');
     let fileId = S.cfg.drive.fileId;
@@ -2505,6 +2712,7 @@ async function restoreFromDrive() {
       const myDrive = S.cfg.drive;
       if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: myDrive };
       S.cfg.drive.fileId = fileId;
+      S.global = imp.global && Array.isArray(imp.global.important) ? imp.global : { important: [] };
       for (const pg of Object.values(S.pages)) {
         for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
       }
@@ -2562,6 +2770,10 @@ function importAll(el) {
       if (confirm('Merge imported data? Existing data kept.')) {
         S.pages = {...S.pages,...imp.pages};
         if (imp.cfg) S.cfg = {...S.cfg,...imp.cfg};
+        if (imp.global?.important) {
+          const ids = new Set((S.global.important||[]).map(i=>i.id));
+          S.global.important = [...(S.global.important||[]), ...imp.global.important.filter(i=>!ids.has(i.id))];
+        }
         save(); renderPage(curDate); toast('Imported!');
       }
     } catch { toast('Invalid format'); }
@@ -2571,7 +2783,7 @@ function importAll(el) {
 }
 function confirmClear() {
   if (confirm('Delete ALL diary data? This cannot be undone.')) {
-    S.pages={}; save(); renderPage(curDate); toast('Cleared');
+    S.pages={}; S.global={important:[]}; save(); renderPage(curDate); toast('Cleared');
   }
 }
 
@@ -2633,6 +2845,10 @@ async function init() {
             if (/^\d{4}-\d{2}-\d{2}$/.test(k)) S.pages[k] = v;
           }
           if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: S.cfg.drive };
+          if (imp.global?.important) {
+            const ids = new Set((S.global.important||[]).map(i=>i.id));
+            S.global.important = [...(S.global.important||[]), ...imp.global.important.filter(i=>!ids.has(i.id))];
+          }
           for (const pg of Object.values(S.pages)) {
             for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
           }

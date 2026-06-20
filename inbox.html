@@ -67,7 +67,7 @@ body {
   transition: background var(--trans), color var(--trans);
 }
 
-/* Topbar, matches diary's cover-colored bar */
+/* Topbar — matches diary's cover-colored bar */
 #topbar {
   position: sticky; top: 0; height: 50px;
   background: var(--cover); color: #fff;
@@ -92,7 +92,7 @@ body {
 }
 .intro strong { color: var(--accent2); }
 
-/* Upload tray, the "desk" metaphor */
+/* Upload tray — the "desk" metaphor */
 #tray {
   background: var(--paper); border: 2.5px dashed var(--line); border-radius: 14px;
   padding: 28px 20px; text-align: center; cursor: pointer;
@@ -145,7 +145,6 @@ body {
 .rcard.assigned { border-color: var(--good); }
 .rcard.processing { opacity: 0.7; cursor: default; }
 .rcard-top { display: flex; align-items: center; gap: 7px; }
-.rcard-icon { font-size: 15px; flex-shrink: 0; }
 .rcard-title {
   font-family: var(--font-main); font-size: 16px; color: var(--ink); flex: 1;
   outline: none; border: none; background: transparent; min-width: 0;
@@ -316,14 +315,14 @@ body {
 <body>
 
 <div id="topbar">
-  <div class="tb-title">🎙️ Audio Inbox</div>
-  <a class="tb-back" href="index.html">📔 Back to Diary</a>
+  <div class="tb-title">Audio Inbox</div>
+  <a class="tb-back" href="index.html">Back to Diary</a>
 </div>
 
 <div id="wrap">
   <div class="intro">
     Drop in audio recordings from your device. <strong>Gemini transcribes each one</strong>,
-    gives it a title and a short summary then drag it onto the day it belongs to.
+    gives it a title and a short summary — then drag it onto the day it belongs to.
     Nothing here touches your diary until you assign it.
   </div>
 
@@ -331,7 +330,7 @@ body {
        ondragover="trayDragOver(event)" ondragleave="trayDragLeave(event)" ondrop="trayDrop(event)">
     <div class="tray-icon">📥</div>
     <div class="tray-text">Drop audio files here, or click to choose</div>
-    <div class="tray-sub">MP3, WAV, M4A, OGG, multiple files at once is fine</div>
+    <div class="tray-sub">MP3, WAV, M4A, OGG — multiple files at once is fine</div>
     <input type="file" id="file-input" accept="audio/*" multiple onchange="filesChosen(this)">
   </div>
 
@@ -339,7 +338,7 @@ body {
     <div id="rec-pane">
       <div class="sec-label">Recordings <span class="count" id="rec-count"></span></div>
       <div id="cards"></div>
-      <div id="empty-note" style="display:none">No recordings yet, drop some audio above to get started.</div>
+      <div id="empty-note" style="display:none">No recordings yet — drop some audio above to get started.</div>
     </div>
 
     <div id="detail-pane">
@@ -366,15 +365,11 @@ body {
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  AUDIO INBOX, completely separate storage from the diary.
-//  Reads the diary's Gemini key + Drive client ID read-only.
+// AUDIO INBOX — completely separate storage from the diary.
 //  Writes assigned recordings directly into the diary's own
 //  storage format (localStorage['diary_v2'] + Drive backup),
 //  exactly as if recorded from within the diary itself.
-// ════════════════════════════════════════════════════════
-
-const DIARY_STORE   = 'diary_v2';
+// 
 const INBOX_STORE    = 'diary_inbox_v1';
 const BLOB_PREFIX     = 'diary_blob_';
 const DRIVE_FILENAME  = 'my-diary-backup.json';
@@ -406,7 +401,7 @@ function phToday() {
 function blobKey(id) { return BLOB_PREFIX + id; }
 function saveBlob(id, data) { if (!data) return true; try { localStorage.setItem(blobKey(id), data); return true; } catch(e) { return false; } }
 
-// ── Inbox's own storage (isolated) ──────────────────────────
+// Inbox's own storage (isolated)
 function saveInbox() {
   try {
     // Strip audio data into blob keys (own namespace) so the JSON stays small
@@ -426,7 +421,7 @@ function loadInbox() {
   } catch(e) {}
 }
 
-// ── Read-only peek at the diary's settings (API key, Drive client) ──
+// Read-only peek at the diary's settings (API key, Drive client)
 function loadDiaryCfgReadOnly() {
   try {
     const raw = localStorage.getItem(DIARY_STORE);
@@ -440,18 +435,18 @@ function activeGeminiKey() {
   return (keys.find(k=>k.active) || keys[0])?.key || null;
 }
 
-// ── Rendering: key status ────────────────────────────────────
+// Rendering: key status
 function renderKeyStatus() {
   const el = document.getElementById('key-status');
   const key = activeGeminiKey();
   if (key) {
-    el.innerHTML = `<span class="ok">✓ Using your diary's Gemini key</span>`;
+    el.innerHTML = `<span class="ok">Using your diary's Gemini key</span>`;
   } else {
-    el.innerHTML = `<span class="bad">⚠ No Gemini key found</span><br>Add one in the diary's Settings first.`;
+    el.innerHTML = `<span class="bad">No Gemini key found</span><br>Add one in the diary's Settings first.`;
   }
 }
 
-// ── File intake ──────────────────────────────────────────────
+// File intake
 function trayDragOver(e) { e.preventDefault(); document.getElementById('tray').classList.add('drag-over'); }
 function trayDragLeave(e) { document.getElementById('tray').classList.remove('drag-over'); }
 function trayDrop(e) {
@@ -483,7 +478,7 @@ function fmtDuration(totalSeconds) {
 }
 
 // Decode the file to find its duration. Returns null if decoding fails
-// (some formats/browsers can't decode, in that case we just proceed normally).
+// (some formats/browsers can't decode — in that case we just proceed normally).
 async function getAudioDuration(file) {
   try {
     const arrayBuf = await file.arrayBuffer();
@@ -512,7 +507,7 @@ function trimAudioBufferToWav(audioBuf, seconds) {
   return audioBufferToWavBlob(trimmed);
 }
 
-// Minimal WAV encoder (PCM 16-bit), no external library needed.
+// Minimal WAV encoder (PCM 16-bit) — no external library needed.
 function audioBufferToWavBlob(buf) {
   const numChannels = buf.numberOfChannels;
   const sampleRate = buf.sampleRate;
@@ -566,7 +561,7 @@ async function findDupeInDiary(name, size) {
     }
   }
 
-  // 2) Full Drive backup, if connected, catches days outside the local cache
+  // 2) Full Drive backup, if connected — catches days outside the local cache
   if (raw.cfg?.drive?.on && raw.cfg.drive.fileId) {
     try {
       const drivePages = await fetchDrivePagesReadOnly(raw.cfg);
@@ -587,9 +582,9 @@ async function intakeFile(file) {
   const inboxDupe = findDupeInInbox(file.name, file.size);
   if (inboxDupe) {
     const where = inboxDupe.assignedTo ? `already sent to ${inboxDupe.assignedTo}` : 'already in your inbox tray';
-    if (!confirm(`"${file.name}" looks like a duplicate, it's ${where} as "${inboxDupe.name}".\n\nAdd it again anyway?`)) return;
+    if (!confirm(`"${file.name}" looks like a duplicate — it's ${where} as "${inboxDupe.name}".\n\nAdd it again anyway?`)) return;
   } else {
-    // Check the diary itself (local cache + Drive), may take a moment if Drive lookup is needed
+    // Check the diary itself (local cache + Drive) — may take a moment if Drive lookup is needed
     toast('Checking for duplicates…', 1500);
     const diaryDupe = await findDupeInDiary(file.name, file.size);
     if (diaryDupe) {
@@ -620,33 +615,33 @@ async function processFile(file) {
 
     if (!key) {
       rec.status = 'ready';
-      rec.transcript = 'No Gemini key found, add one in the diary Settings, then delete and re-upload this file.';
+      rec.transcript = 'No Gemini key found — add one in the diary Settings, then delete and re-upload this file.';
       saveInbox(); renderCards(); renderDetail();
       return;
     }
 
-    // Check duration before sending anything, long files can overflow the
+    // Check duration before sending anything — long files can overflow the
     // browser's base64 string/array limits when encoded for the API request.
     let sendFile = file, sendDataUrl = data, trimmedNote = null;
     const durInfo = await getAudioDuration(file);
     if (durInfo && durInfo.duration > MAX_SAFE_SECONDS) {
       const lenStr = fmtDuration(durInfo.duration);
       const proceed = confirm(
-        `"${file.name}" is ${lenStr} long, too long to transcribe in full.\n\n` +
+        `"${file.name}" is ${lenStr} long — too long to transcribe in full.\n\n` +
         `Will you still continue? If so, only the first ${TRIM_SECONDS} seconds will be transcribed, ` +
         `just so you get the gist.`
       );
       if (!proceed) {
         rec.status = 'ready';
         rec.transcript = '';
-        rec.trimNote = `Skipped, ${lenStr} long, too long to transcribe.`;
+        rec.trimNote = `Skipped — ${lenStr} long, too long to transcribe.`;
         saveInbox(); renderCards(); renderDetail();
         return;
       }
       const wavBlob = trimAudioBufferToWav(durInfo.audioBuf, TRIM_SECONDS);
       sendFile = new File([wavBlob], file.name.replace(/\.[^.]+$/,'') + '-trimmed.wav', { type: 'audio/wav' });
       sendDataUrl = await toDataUrl(sendFile);
-      trimmedNote = `This recording is ${lenStr} long, only the first ${TRIM_SECONDS} seconds were transcribed.`;
+      trimmedNote = `This recording is ${lenStr} long — only the first ${TRIM_SECONDS} seconds were transcribed.`;
       rec.trimNote = trimmedNote;
     }
 
@@ -657,11 +652,11 @@ async function processFile(file) {
     rec.status = 'ready';
     saveInbox();
     renderCards(); renderDetail();
-    toast(trimmedNote ? `🎙️ "${rec.name}" transcribed (first ${TRIM_SECONDS}s only)` : `🎙️ "${rec.name}" transcribed`);
+    toast(trimmedNote ? `"${rec.name}" transcribed (first ${TRIM_SECONDS}s only)` : `"${rec.name}" transcribed`);
   } catch(e) {
     rec.status = 'ready';
     const msg = /allocation size overflow/i.test(e.message)
-      ? 'This recording is too long to transcribe in full. Try again, you\'ll be asked if you want just the first minute.'
+      ? 'This recording is too long to transcribe in full. Try again — you\'ll be asked if you want just the first minute.'
       : e.message;
     rec.transcript = '';
     rec.trimNote = 'Transcription failed: ' + msg;
@@ -704,10 +699,10 @@ Return JSON only, no markdown fences:
   catch { return { transcript: txt, title: null, summary: '' }; }
 }
 
-// ── Selection state ────────────────────────────────────────────
+// Selection state
 let selectedId = null;
 
-// ── Card rendering (compact list, left pane) ────────────────────
+// Card rendering (compact list, left pane)
 function renderCards() {
   const wrap = document.getElementById('cards');
   const empty = document.getElementById('empty-note');
@@ -729,13 +724,12 @@ function renderCards() {
       draggable="${!isProcessing}" onclick="selectRec('${r.id}')"
       ondragstart="cardDragStart(event,'${r.id}')" ondragend="cardDragEnd(event)">
       <div class="rcard-top">
-        <span class="rcard-icon">🎙️</span>
         <span class="rcard-title">${esc(r.name)}</span>
         ${statusHtml}
         <button class="rcard-del" onclick="event.stopPropagation();deleteRec('${r.id}')" title="Delete">×</button>
       </div>
       <div class="rcard-meta">
-        <span>📅 ${esc(r.time)}</span>
+        <span>${esc(r.time)}</span>
         ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
       </div>
     </div>`;
@@ -760,7 +754,7 @@ function deleteRec(id) {
   saveInbox(); renderCards(); renderDetail();
 }
 
-// ── Markdown -> HTML for transcripts (mirrors the diary's own formatter) ──
+// Markdown -> HTML for transcripts (mirrors the diary's own formatter)
 function renderTranscriptMarkdown(text) {
   if (!text || !text.trim()) return '<p style="color:var(--ink3);font-style:italic">No transcript text.</p>';
   const lines = esc(text).split('\n');
@@ -795,7 +789,7 @@ function renderTranscriptMarkdown(text) {
   return html;
 }
 
-// ── Detail pane (transcript reader, right of the list) ──────────
+// Detail pane (transcript reader, right of the list)
 function renderDetail() {
   const body = document.getElementById('detail-body');
   const r = INBOX.recs.find(x => x.id === selectedId);
@@ -809,7 +803,7 @@ function renderDetail() {
   if (isProcessing) {
     body.innerHTML = `
       <input class="detail-rec-title" value="${esc(r.name)}" disabled>
-      <div class="detail-meta"><span>📅 ${esc(r.time)}</span><span>🎵 ${esc(r.file)}</span></div>
+      <div class="detail-meta"><span>${esc(r.time)}</span><span>${esc(r.file)}</span></div>
       <div style="padding:30px 0;text-align:center;color:var(--ink3);font-family:var(--font-ui)">
         <span class="spin"></span>Transcribing with Gemini…
       </div>`;
@@ -817,7 +811,7 @@ function renderDetail() {
   }
 
   const assignRow = isAssigned
-    ? `<div class="detail-assigned-note">✓ Sent to your diary on ${esc(r.assignedTo)}, open that day to see it.</div>`
+    ? `<div class="detail-assigned-note">Sent to your diary on ${esc(r.assignedTo)} — open that day to see it.</div>`
     : `<div class="detail-assign-row">
         Send to:
         <input type="date" id="detail-date-${r.id}" max="${phToday()}" value="${phToday()}">
@@ -831,13 +825,13 @@ function renderDetail() {
     ${r.data ? `<audio class="detail-audio" controls src="${r.data}"></audio>` : ''}
     ${r.summary ? `<div class="detail-summary">${esc(r.summary)}</div>` : ''}
     <div class="detail-meta">
-      <span>📅 ${esc(r.time)}</span>
-      <span>🎵 ${esc(r.file)}</span>
+      <span>${esc(r.time)}</span>
+      <span>${esc(r.file)}</span>
       ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
     </div>
     ${assignRow}
     <div class="detail-tx-label">Transcript</div>
-    <button class="detail-edit-toggle" id="detail-edit-toggle-${r.id}" onclick="toggleDetailEdit('${r.id}')">✏️ Edit</button>
+    <button class="detail-edit-toggle" id="detail-edit-toggle-${r.id}" onclick="toggleDetailEdit('${r.id}')">Edit</button>
     <div class="detail-transcript" id="detail-tx-${r.id}">${renderTranscriptMarkdown(r.transcript)}${r.trimNote ? `<div class="tx-note">${esc(r.trimNote)}</div>` : ''}</div>
     <textarea class="detail-transcript-edit" id="detail-tx-edit-${r.id}"
       onblur="updTranscript('${r.id}', this.value)">${esc(r.transcript)}</textarea>
@@ -852,10 +846,10 @@ function toggleDetailEdit(id) {
   const showingEdit = edit.classList.contains('open');
   if (showingEdit) {
     edit.classList.remove('open'); view.classList.remove('hidden-by-edit');
-    btn.textContent = '✏️ Edit';
+    btn.textContent = 'Edit';
   } else {
     edit.classList.add('open'); view.classList.add('hidden-by-edit');
-    btn.textContent = '📄 Done editing';
+    btn.textContent = 'Done editing';
     setTimeout(() => edit.focus(), 0);
   }
 }
@@ -869,7 +863,7 @@ function updTranscript(id, text) {
   if (view) view.innerHTML = renderTranscriptMarkdown(r.transcript) + (r.trimNote ? `<div class="tx-note">${esc(r.trimNote)}</div>` : '');
 }
 
-// ── Drag to calendar ─────────────────────────────────────────
+// Drag to calendar
 let draggingId = null;
 function cardDragStart(e, id) {
   draggingId = id;
@@ -927,11 +921,11 @@ function assignFromInput(id) {
   assignRecording(id, v);
 }
 
-// ── The actual assignment: write into the diary's own storage ──
+// The actual assignment: write into the diary's own storage
 async function assignRecording(recId, dateStr) {
   const rec = INBOX.recs.find(r => r.id === recId);
   if (!rec) return;
-  if (rec.status === 'processing') { toast('Still transcribing, wait a moment'); return; }
+  if (rec.status === 'processing') { toast('Still transcribing — wait a moment'); return; }
   if (!confirm(`Send "${rec.name}" to ${dateStr}? It'll be added to that day's diary, important notes, and checklist.`)) return;
 
   toast('Sending to diary…', 4000);
@@ -943,14 +937,14 @@ async function assignRecording(recId, dateStr) {
     renderCards();
     renderDetail();
     renderCalendar();
-    toast(`✓ Sent to ${dateStr}`);
+    toast(`Sent to ${dateStr}`);
   } catch (e) {
     console.error(e);
     toast('Could not assign: ' + e.message);
   }
 }
 
-// Loads the target day's page object, from local cache if present,
+// Loads the target day's page object — from local cache if present,
 // otherwise from the Drive backup (since only 5 recent days are cached locally).
 async function loadDiaryState() {
   const raw = localStorage.getItem(DIARY_STORE);
@@ -1032,7 +1026,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
   saveBlob(recId, rec.data);
 
   // Write back to local cache only if this date should be locally cached
-  // (today, or already was cached), otherwise just push straight to Drive
+  // (today, or already was cached) — otherwise just push straight to Drive
   // to avoid evicting a different recent day from the 5-page cache.
   const today = phToday();
   if (dateStr === today || isLocallyCached) {
@@ -1043,7 +1037,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
   if (diary.cfg?.drive?.on) {
     await pushDayToDrive(diary, dateStr, pg);
   } else if (dateStr !== today && !isLocallyCached) {
-    // No Drive connected and day isn't cached locally, best effort: still write
+    // No Drive connected and day isn't cached locally — best effort: still write
     // it locally even though it may get evicted by the 5-page cache later.
     persistDiaryLocal(diary);
     toast('Note: Drive isn\'t connected, so older days may not persist locally. Connect Drive in the diary\'s Settings.', 5000);
@@ -1073,7 +1067,7 @@ function persistDiaryLocal(diary) {
   } catch(e) { console.error('Could not persist diary local cache:', e); }
 }
 
-// ── Drive access (mirrors the diary's own functions) ──────────
+// Drive access (mirrors the diary's own functions)
 function ensureTokenClient(clientId) {
   if (!clientId) return false;
   if (tokenClient && tokenClient._cid === clientId) return true;
@@ -1133,7 +1127,7 @@ async function pushDayToDrive(diary, dateStr, updatedPage) {
   const clientId = diary.cfg.drive.clientId;
   const fileId = diary.cfg.drive.fileId;
   const folderId = diary.cfg.drive.folderId;
-  if (!clientId) { toast('Drive client ID missing, open the diary once to set it up'); return; }
+  if (!clientId) { toast('Drive client ID missing — open the diary once to set it up'); return; }
 
   let allPages = {};
   if (fileId) {
@@ -1194,13 +1188,13 @@ async function geminiParseForDay(transcript, recName, key) {
   const body = {
     model: 'gemini-2.5-flash-lite',
     contents: [{ parts: [{ text: `You are a personal diary assistant. From this voice memo, extract:
-1. diary entry text, narrative, 1st person, natural, well-organized. Format using simple Markdown:
+1. diary entry text — narrative, 1st person, natural, well-organized. Format using simple Markdown:
    - "## " for a short heading if appropriate
    - "- " for bullet lists where helpful
    - "1. " for numbered steps/sequences if relevant
    - "**bold**" sparingly for emphasis
    - otherwise normal paragraphs separated by blank lines
-2. important things to remember (array of short strings), only lasting facts worth remembering long-term
+2. important things to remember (array of short strings) — only lasting facts worth remembering long-term
 3. tasks/checklist items (array of objects)
    Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
 
@@ -1218,7 +1212,7 @@ Return JSON only, no markdown fences:
   try { return JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { return {}; }
 }
 
-// ── Init ───────────────────────────────────────────────────
+// Init
 function init() {
   diaryCfgCache = loadDiaryCfgReadOnly();
   if (diaryCfgCache?.theme) {

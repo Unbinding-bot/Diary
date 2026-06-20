@@ -6,56 +6,9 @@
 <title>Audio Inbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-@font-face {
-  font-family: handwriting;
-  src: url(font/hand2.woff2) format("woff2"),
-       url(font/hand2.woff) format("woff");
-  font-weight: normal;
-  font-style: normal;
-}
-:root {
-  --paper:        #faf6ed;
-  --paper2:       #f4eedf;
-  --paper3:       #ede5d0;
-  --ink:          #2c2416;
-  --ink2:         #5a4e3a;
-  --ink3:         #9a8a72;
-  --line:         #ddd3b8;
-  --accent:       #b85c38;
-  --accent2:      #7a3e24;
-  --accent-light: #f5e4d8;
-  --cover:        #7a2e1c;
-  --shadow:       rgba(0,0,0,0.22);
-  --shadow2:      rgba(0,0,0,0.10);
-  --font-main:    handwriting, cursive;
-  --font-ui:      'Segoe UI', system-ui, sans-serif;
-  --trans:        0.28s ease;
-  --good:         #3d7a38;
-  --warn:         #b85c38;
-}
-[data-theme="dark"] {
-  --paper: #18160f; --paper2: #201d14; --paper3: #252218;
-  --ink: #e4dcc8; --ink2: #a89a82; --ink3: #6a6050;
-  --line: #2c2920; --accent: #d9724a; --accent2: #b05535;
-  --accent-light: #281a12; --cover: #2a0e06;
-  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
-}
-[data-theme="white"] {
-  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
-  --ink: #111; --ink2: #444; --ink3: #999;
-  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
-  --accent-light: #e8f0fd; --cover: #1a3f9e;
-  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
-}
-[data-theme="forest"] {
-  --paper: #f2f5ee; --paper2: #e8ede2; --paper3: #dde4d5;
-  --ink: #1c2a18; --ink2: #3e5438; --ink3: #6e8865;
-  --line: #ccdac4; --accent: #3d7a38; --accent2: #285024;
-  --accent-light: #dceedd; --cover: #1e4a1a;
-  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
-}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; }
@@ -155,7 +108,7 @@ body {
   flex-shrink: 0; white-space: nowrap;
 }
 .rcard-status.processing { background: var(--accent-light); color: var(--accent2); }
-.rcard-status.ready { background: rgba(61,122,56,0.15); color: var(--good); }
+.rcard-status.ready { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
 .rcard-status.assigned { background: var(--good); color: #fff; }
 .rcard-del {
   background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 14px;
@@ -210,7 +163,7 @@ body {
 .detail-assign-btn:hover { background: var(--accent2); }
 .detail-assigned-note {
   font-size: 12px; color: var(--good); font-family: var(--font-ui);
-  margin-bottom: 14px; padding: 6px 10px; background: rgba(61,122,56,0.12); border-radius: 6px;
+  margin-bottom: 14px; padding: 6px 10px; background: color-mix(in srgb, var(--good) 12%, transparent); border-radius: 6px;
 }
 .detail-tx-label {
   font-size: 11px; color: var(--ink3); font-family: var(--font-ui);

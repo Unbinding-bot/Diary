@@ -1,0 +1,67 @@
+/* Shared design tokens for My Diary + Audio Inbox.
+   Both pages link this file so themes always stay in sync. */
+
+@font-face {
+  font-family: handwriting;
+  src: url(font/hand2.woff2) format("woff2"),
+       url(font/hand2.woff) format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* DESIGN TOKENS */
+:root {
+  --paper:        #faf6ed;
+  --paper2:       #f4eedf;
+  --paper3:       #ede5d0;
+  --ink:          #2c2416;
+  --ink2:         #5a4e3a;
+  --ink3:         #9a8a72;
+  --line:         #ddd3b8;
+  --accent:       #b85c38;
+  --accent2:      #7a3e24;
+  --accent-light: #f5e4d8;
+  --margin-line:  rgba(220,120,100,0.4);
+  --ruled-line:   rgba(180,160,130,0.45);
+  --cover:        #7a2e1c;
+  --cover2:       #5c2214;
+  --spine-bg:     #4a1a0e;
+  --shadow:       rgba(0,0,0,0.22);
+  --shadow2:      rgba(0,0,0,0.10);
+  --good:         #3d7a38;
+  --warn:         #b85c38;
+  --font-main:    handwriting, cursive;
+  --font-ui:      'Segoe UI', system-ui, sans-serif;
+  --line-h:       34px;
+  --trans:        0.28s ease;
+}
+[data-theme="dark"] {
+  --paper: #18160f; --paper2: #201d14; --paper3: #252218;
+  --ink: #e4dcc8; --ink2: #a89a82; --ink3: #6a6050;
+  --line: #2c2920; --accent: #d9724a; --accent2: #b05535;
+  --accent-light: #281a12; --margin-line: rgba(180,80,55,0.35);
+  --ruled-line: rgba(60,54,40,0.9);
+  --cover: #2a0e06; --cover2: #1e0904; --spine-bg: #120502;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+  --good: #5a9c54; --warn: #d9724a;
+}
+[data-theme="white"] {
+  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
+  --ink: #111; --ink2: #444; --ink3: #999;
+  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
+  --accent-light: #e8f0fd; --margin-line: rgba(80,130,230,0.35);
+  --ruled-line: rgba(200,200,200,0.7);
+  --cover: #1a3f9e; --cover2: #0e2d7a; --spine-bg: #091e52;
+  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
+  --good: #2d8a4e; --warn: #d6432b;
+}
+[data-theme="forest"] {
+  --paper: #f2f5ee; --paper2: #e8ede2; --paper3: #dde4d5;
+  --ink: #1c2a18; --ink2: #3e5438; --ink3: #6e8865;
+  --line: #ccdac4; --accent: #3d7a38; --accent2: #285024;
+  --accent-light: #dceedd; --margin-line: rgba(80,160,75,0.35);
+  --ruled-line: rgba(160,195,150,0.5);
+  --cover: #1e4a1a; --cover2: #153513; --spine-bg: #0e2410;
+  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
+  --good: #3d7a38; --warn: #a8501f;
+}

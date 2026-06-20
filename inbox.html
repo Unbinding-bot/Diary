@@ -937,7 +937,8 @@ async function assignRecording(recId, dateStr) {
   toast('Sending to diary…', 4000);
   try {
     await injectIntoDiaryDay(dateStr, rec);
-    rec.assignedTo = dateStr;
+    INBOX.recs = INBOX.recs.filter(r => r.id !== recId);
+    if (selectedId === recId) selectedId = INBOX.recs[0]?.id || null;
     saveInbox();
     renderCards();
     renderDetail();

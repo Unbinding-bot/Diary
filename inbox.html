@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Inbox — My Diary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+@font-face {
+  font-family: handwriting;
+  src: url(font/hand2.woff2) format("woff2"),
+       url(font/hand2.woff) format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+:root {
+  --paper:        #faf6ed;
+  --paper2:       #f4eedf;
+  --paper3:       #ede5d0;
+  --ink:          #2c2416;
+  --ink2:         #5a4e3a;
+  --ink3:         #9a8a72;
+  --line:         #ddd3b8;
+  --accent:       #b85c38;
+  --accent2:      #7a3e24;
+  --accent-light: #f5e4d8;
+  --cover:        #7a2e1c;
+  --shadow:       rgba(0,0,0,0.22);
+  --shadow2:      rgba(0,0,0,0.10);
+  --font-main:    handwriting, cursive;
+  --font-ui:      'Segoe UI', system-ui, sans-serif;
+  --trans:        0.28s ease;
+  --good:         #3d7a38;
+  --warn:         #b85c38;
+}
+[data-theme="dark"] {
+  --paper: #18160f; --paper2: #201d14; --paper3: #252218;
+  --ink: #e4dcc8; --ink2: #a89a82; --ink3: #6a6050;
+  --line: #2c2920; --accent: #d9724a; --accent2: #b05535;
+  --accent-light: #281a12; --cover: #2a0e06;
+  --shadow: rgba(0,0,0,0.6); --shadow2: rgba(0,0,0,0.3);
+}
+[data-theme="white"] {
+  --paper: #ffffff; --paper2: #f6f6f6; --paper3: #eeeeee;
+  --ink: #111; --ink2: #444; --ink3: #999;
+  --line: #ddd; --accent: #2d6be4; --accent2: #1a4fbb;
+  --accent-light: #e8f0fd; --cover: #1a3f9e;
+  --shadow: rgba(0,0,0,0.12); --shadow2: rgba(0,0,0,0.06);
+}
+[data-theme="forest"] {
+  --paper: #f2f5ee; --paper2: #e8ede2; --paper3: #dde4d5;
+  --ink: #1c2a18; --ink2: #3e5438; --ink3: #6e8865;
+  --line: #ccdac4; --accent: #3d7a38; --accent2: #285024;
+  --accent-light: #dceedd; --cover: #1e4a1a;
+  --shadow: rgba(0,0,0,0.15); --shadow2: rgba(0,0,0,0.07);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--paper3);
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  transition: background var(--trans), color var(--trans);
+}
+
+/* Topbar — matches diary's cover-colored bar */
+#topbar {
+  position: sticky; top: 0; height: 50px;
+  background: var(--cover); color: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; z-index: 50;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.tb-title { font-family: var(--font-main); font-size: 23px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.tb-back {
+  color: #fff; text-decoration: none; background: rgba(255,255,255,0.14);
+  padding: 6px 12px; border-radius: 7px; font-size: 13px; font-family: var(--font-ui);
+  transition: background 0.18s; display: flex; align-items: center; gap: 5px;
+}
+.tb-back:hover { background: rgba(255,255,255,0.26); }
+
+#wrap { max-width: 1180px; margin: 0 auto; padding: 22px 18px 80px; }
+
+/* Intro strip */
+.intro {
+  font-family: var(--font-main); font-size: 19px; color: var(--ink2);
+  margin-bottom: 18px; line-height: 1.4; max-width: 720px;
+}
+.intro strong { color: var(--accent2); }
+
+/* Upload tray — the "desk" metaphor */
+#tray {
+  background: var(--paper); border: 2.5px dashed var(--line); border-radius: 14px;
+  padding: 28px 20px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 26px;
+}
+#tray.drag-over { border-color: var(--accent); background: var(--accent-light); }
+#tray .tray-icon { font-size: 38px; margin-bottom: 8px; }
+#tray .tray-text { font-family: var(--font-main); font-size: 20px; color: var(--ink2); }
+#tray .tray-sub { font-size: 12px; color: var(--ink3); margin-top: 4px; font-family: var(--font-ui); }
+#tray input { display: none; }
+
+/* Section title */
+.sec-label {
+  font-family: var(--font-main); font-size: 21px; color: var(--accent2);
+  margin: 26px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.sec-label .count { font-size: 12px; font-family: var(--font-ui); color: var(--ink3); font-weight: normal; }
+
+/* Layout: cards column (left) + day-drop calendar (right) */
+#main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; }
+@media (max-width: 880px) {
+  #main-grid { grid-template-columns: 1fr; }
+}
+
+/* Recording cards */
+#cards { display: flex; flex-direction: column; gap: 12px; }
+.rcard {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; box-shadow: 0 2px 8px var(--shadow2);
+  cursor: grab; transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+}
+.rcard:active { cursor: grabbing; }
+.rcard.dragging { opacity: 0.4; }
+.rcard.assigned { border-color: var(--good); background: var(--accent-light); }
+.rcard.processing { opacity: 0.7; }
+.rcard-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.rcard-icon { font-size: 18px; flex-shrink: 0; }
+.rcard-title {
+  font-family: var(--font-main); font-size: 18px; color: var(--ink); flex: 1;
+  outline: none; border: none; background: transparent; min-width: 0;
+}
+.rcard-status {
+  font-size: 10px; font-family: var(--font-ui); padding: 2px 7px; border-radius: 8px;
+  flex-shrink: 0; white-space: nowrap;
+}
+.rcard-status.processing { background: var(--accent-light); color: var(--accent2); }
+.rcard-status.ready { background: rgba(61,122,56,0.15); color: var(--good); }
+.rcard-status.assigned { background: var(--good); color: #fff; }
+.rcard-del {
+  background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 15px;
+  padding: 0 3px; flex-shrink: 0; transition: color 0.15s;
+}
+.rcard-del:hover { color: var(--accent); }
+.rcard audio { width: 100%; height: 32px; margin: 6px 0; }
+.rcard-summary {
+  font-size: 13px; color: var(--ink2); font-family: var(--font-ui);
+  margin: 4px 0 6px; line-height: 1.4;
+}
+.rcard-meta {
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui);
+  display: flex; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;
+}
+.rcard-tx-toggle {
+  background: var(--accent-light); border: 1px solid var(--line); color: var(--accent2);
+  font-size: 11px; padding: 3px 9px; border-radius: 6px; cursor: pointer; font-family: var(--font-ui);
+}
+.rcard-tx-toggle:hover { background: var(--accent); color: #fff; }
+.rcard-transcript {
+  display: none; margin-top: 8px; padding: 10px; background: var(--paper2);
+  border-radius: 8px; font-size: 14px; line-height: 1.5; color: var(--ink);
+  font-family: var(--font-main); max-height: 220px; overflow-y: auto;
+  white-space: pre-wrap;
+}
+.rcard-transcript.open { display: block; }
+.rcard-assign-row {
+  display: flex; align-items: center; gap: 6px; margin-top: 8px;
+  font-size: 12px; font-family: var(--font-ui); color: var(--ink3);
+}
+.rcard-assign-row input[type="date"] {
+  font-family: var(--font-ui); font-size: 12px; padding: 3px 6px;
+  border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink);
+}
+.rcard-assign-btn {
+  background: var(--accent); color: #fff; border: none; padding: 4px 10px;
+  border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font-ui);
+  transition: background 0.15s;
+}
+.rcard-assign-btn:hover { background: var(--accent2); }
+.rcard-assigned-note {
+  font-size: 11px; color: var(--good); font-family: var(--font-ui); margin-top: 6px;
+}
+
+/* Empty state */
+#empty-note {
+  text-align: center; padding: 40px 20px; color: var(--ink3);
+  font-family: var(--font-main); font-size: 19px;
+}
+
+/* Calendar drop panel */
+#cal-panel {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 16px; position: sticky; top: 66px;
+}
+.cal-panel-title {
+  font-family: var(--font-main); font-size: 19px; color: var(--accent2);
+  margin-bottom: 4px;
+}
+.cal-panel-sub { font-size: 11px; color: var(--ink3); font-family: var(--font-ui); margin-bottom: 12px; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-nav button {
+  background: var(--accent-light); border: none; color: var(--accent2);
+  width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 14px;
+}
+.cal-nav button:hover { background: var(--accent); color: #fff; }
+.cal-nav-label { font-family: var(--font-main); font-size: 16px; color: var(--ink); }
+.cal-grid2 { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-dow { font-size: 9px; color: var(--ink3); text-align: center; font-family: var(--font-ui); padding-bottom: 3px; }
+.cal-day2 {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; border-radius: 6px; cursor: default; color: var(--ink2);
+  font-family: var(--font-ui); position: relative; border: 1.5px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+.cal-day2.empty { visibility: hidden; }
+.cal-day2.future { opacity: 0.3; }
+.cal-day2.today { font-weight: 700; color: var(--accent); }
+.cal-day2.has-entry::after {
+  content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+}
+.cal-day2.drop-target { border-color: var(--line); }
+.cal-day2.drag-hover { background: var(--accent-light); border-color: var(--accent); transform: scale(1.1); }
+
+/* Settings strip at bottom of cal panel */
+.inbox-key-status {
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 11px; color: var(--ink3); font-family: var(--font-ui); line-height: 1.5;
+}
+.inbox-key-status .ok { color: var(--good); }
+.inbox-key-status .bad { color: var(--warn); }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(70px);
+  background: var(--cover); color: #fff; padding: 9px 20px; border-radius: 18px;
+  font-size: 13px; font-family: var(--font-ui); z-index: 999;
+  transition: transform 0.28s ease; white-space: nowrap;
+  box-shadow: 0 3px 14px var(--shadow); pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Spinner */
+.spin {
+  display: inline-block; width: 11px; height: 11px; border: 2px solid var(--accent-light);
+  border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="tb-title">🎙️ Audio Inbox</div>
+  <a class="tb-back" href="index.html">📔 Back to Diary</a>
+</div>
+
+<div id="wrap">
+  <div class="intro">
+    Drop in audio recordings from your device. <strong>Gemini transcribes each one</strong>,
+    gives it a title and a short summary — then drag it onto the day it belongs to.
+    Nothing here touches your diary until you assign it.
+  </div>
+
+  <div id="tray" onclick="document.getElementById('file-input').click()"
+       ondragover="trayDragOver(event)" ondragleave="trayDragLeave(event)" ondrop="trayDrop(event)">
+    <div class="tray-icon">📥</div>
+    <div class="tray-text">Drop audio files here, or click to choose</div>
+    <div class="tray-sub">MP3, WAV, M4A, OGG — multiple files at once is fine</div>
+    <input type="file" id="file-input" accept="audio/*" multiple onchange="filesChosen(this)">
+  </div>
+
+  <div id="main-grid">
+    <div>
+      <div class="sec-label">Recordings <span class="count" id="rec-count"></span></div>
+      <div id="cards"></div>
+      <div id="empty-note" style="display:none">No recordings yet — drop some audio above to get started.</div>
+    </div>
+
+    <div id="cal-panel">
+      <div class="cal-panel-title" id="cal-title">Assign to a day</div>
+      <div class="cal-panel-sub">Drag a card onto a date below</div>
+      <div class="cal-nav">
+        <button onclick="calMove(-1)">‹</button>
+        <span class="cal-nav-label" id="cal-nav-label"></span>
+        <button onclick="calMove(1)">›</button>
+      </div>
+      <div class="cal-grid2" id="cal-grid2"></div>
+      <div class="inbox-key-status" id="key-status">Checking for your Gemini key…</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  AUDIO INBOX — completely separate storage from the diary.
+//  Reads the diary's Gemini key + Drive client ID read-only.
+//  Writes assigned recordings directly into the diary's own
+//  storage format (localStorage['diary_v2'] + Drive backup),
+//  exactly as if recorded from within the diary itself.
+// ════════════════════════════════════════════════════════
+
+const DIARY_STORE   = 'diary_v2';
+const INBOX_STORE    = 'diary_inbox_v1';
+const BLOB_PREFIX     = 'diary_blob_';
+const DRIVE_FILENAME  = 'my-diary-backup.json';
+const DRIVE_FOLDER_NAME = 'My Diary';
+const IS_HTTPS = location.protocol === 'https:';
+const DRIVE_SCOPE = IS_HTTPS
+  ? 'https://www.googleapis.com/auth/drive'
+  : 'https://www.googleapis.com/auth/drive.file';
+
+let INBOX = { recs: [] }; // { id, name, file, data, size, transcript, summary, time, at, assignedTo }
+let diaryCfgCache = null; // read-only peek at diary_v2's cfg
+let calView = new Date();
+let tokenClient = null, tokenResolve = null, tokenReject = null;
+let driveToken = { access_token: null, expiresAt: 0 };
+let tokenRequestInFlight = false;
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, ms=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+function phToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function blobKey(id) { return BLOB_PREFIX + id; }
+function saveBlob(id, data) { if (!data) return true; try { localStorage.setItem(blobKey(id), data); return true; } catch(e) { return false; } }
+
+// ── Inbox's own storage (isolated) ──────────────────────────
+function saveInbox() {
+  try {
+    // Strip audio data into blob keys (own namespace) so the JSON stays small
+    const stripped = INBOX.recs.map(r => {
+      if (r.data) saveBlob('inbox_' + r.id, r.data);
+      return { ...r, data: null };
+    });
+    localStorage.setItem(INBOX_STORE, JSON.stringify({ recs: stripped }));
+  } catch(e) { console.error('Could not save inbox:', e); }
+}
+function loadInbox() {
+  try {
+    const raw = localStorage.getItem(INBOX_STORE);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    INBOX.recs = (p.recs || []).map(r => ({ ...r, data: localStorage.getItem(blobKey('inbox_' + r.id)) || null }));
+  } catch(e) {}
+}
+
+// ── Read-only peek at the diary's settings (API key, Drive client) ──
+function loadDiaryCfgReadOnly() {
+  try {
+    const raw = localStorage.getItem(DIARY_STORE);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return p.cfg || null;
+  } catch(e) { return null; }
+}
+function activeGeminiKey() {
+  const keys = diaryCfgCache?.keys || [];
+  return (keys.find(k=>k.active) || keys[0])?.key || null;
+}
+
+// ── Rendering: key status ────────────────────────────────────
+function renderKeyStatus() {
+  const el = document.getElementById('key-status');
+  const key = activeGeminiKey();
+  if (key) {
+    el.innerHTML = `<span class="ok">✓ Using your diary's Gemini key</span>`;
+  } else {
+    el.innerHTML = `<span class="bad">⚠ No Gemini key found</span><br>Add one in the diary's Settings first.`;
+  }
+}
+
+// ── File intake ──────────────────────────────────────────────
+function trayDragOver(e) { e.preventDefault(); document.getElementById('tray').classList.add('drag-over'); }
+function trayDragLeave(e) { document.getElementById('tray').classList.remove('drag-over'); }
+function trayDrop(e) {
+  e.preventDefault();
+  document.getElementById('tray').classList.remove('drag-over');
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('audio/'));
+  files.forEach(intakeFile);
+}
+function filesChosen(el) {
+  [...el.files].forEach(intakeFile);
+  el.value = '';
+}
+
+function toDataUrl(file) {
+  return new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+}
+
+// Fingerprint = filename + size. Cheap, no file reads needed, and reliable
+// enough to catch "I already uploaded/assigned this exact recording."
+function fingerprint(name, size) { return `${name}::${size}`; }
+
+// Check the inbox tray (already-loaded recordings, including assigned ones)
+function findDupeInInbox(name, size) {
+  const fp = fingerprint(name, size);
+  return INBOX.recs.find(r => fingerprint(r.file, r.size) === fp) || null;
+}
+
+// Check the diary itself: locally cached pages + (if connected) the full Drive backup.
+// Returns { date, recName } if found, else null.
+async function findDupeInDiary(name, size) {
+  const fp = fingerprint(name, size);
+
+  // 1) Locally cached pages (fast, no network)
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem(DIARY_STORE) || '{}'); } catch(e) { raw = {}; }
+  for (const [date, pg] of Object.entries(raw.pages || {})) {
+    for (const r of (pg.recs || [])) {
+      if (fingerprint(r.file, r.size) === fp) return { date, recName: r.name };
+    }
+  }
+
+  // 2) Full Drive backup, if connected — catches days outside the local cache
+  if (raw.cfg?.drive?.on && raw.cfg.drive.fileId) {
+    try {
+      const drivePages = await fetchDrivePagesReadOnly(raw.cfg);
+      for (const [date, pg] of Object.entries(drivePages || {})) {
+        for (const r of (pg.recs || [])) {
+          if (fingerprint(r.file, r.size) === fp) return { date, recName: r.name };
+        }
+      }
+    } catch(e) {
+      console.warn('Could not check Drive for duplicates:', e.message);
+    }
+  }
+  return null;
+}
+
+async function intakeFile(file) {
+  // Check the tray first (instant, no network)
+  const inboxDupe = findDupeInInbox(file.name, file.size);
+  if (inboxDupe) {
+    const where = inboxDupe.assignedTo ? `already sent to ${inboxDupe.assignedTo}` : 'already in your inbox tray';
+    if (!confirm(`"${file.name}" looks like a duplicate — it's ${where} as "${inboxDupe.name}".\n\nAdd it again anyway?`)) return;
+  } else {
+    // Check the diary itself (local cache + Drive) — may take a moment if Drive lookup is needed
+    toast('Checking for duplicates…', 1500);
+    const diaryDupe = await findDupeInDiary(file.name, file.size);
+    if (diaryDupe) {
+      if (!confirm(`"${file.name}" looks like it's already in your diary on ${diaryDupe.date} (as "${diaryDupe.recName}").\n\nAdd it again anyway?`)) return;
+    }
+  }
+  processFile(file);
+}
+
+async function processFile(file) {
+  const key = activeGeminiKey();
+  const id = uid();
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true});
+  const rec = {
+    id, name: file.name.replace(/\.[^.]+$/,''), file: file.name, data: null,
+    size: file.size, transcript: '', summary: '', time, at: now.toISOString(),
+    assignedTo: null, status: 'processing'
+  };
+  INBOX.recs.unshift(rec);
+  renderCards();
+
+  try {
+    const data = await toDataUrl(file);
+    rec.data = data;
+    if (!key) {
+      rec.status = 'ready';
+      rec.transcript = '(No Gemini key found — add one in the diary Settings, then re-process.)';
+      saveInbox(); renderCards();
+      return;
+    }
+    const result = await geminiTranscribeAndSummarize(file, data, key);
+    rec.transcript = result.transcript || '';
+    rec.name = result.title || rec.name;
+    rec.summary = result.summary || '';
+    rec.status = 'ready';
+    saveInbox();
+    renderCards();
+    toast(`🎙️ "${rec.name}" transcribed`);
+  } catch(e) {
+    rec.status = 'ready';
+    rec.transcript = '(Transcription failed: ' + e.message + ')';
+    saveInbox();
+    renderCards();
+    toast('Error transcribing: ' + e.message);
+  }
+}
+
+async function geminiTranscribeAndSummarize(file, dataUrl, key) {
+  const b64 = dataUrl.split(',')[1];
+  const body = {
+    model: 'gemini-2.5-flash-lite',
+    contents: [{ parts: [
+      { inline_data: { mime_type: file.type || 'audio/mpeg', data: b64 } },
+      { text: `Transcribe this audio recording completely and accurately.
+Then give:
+- a short descriptive title (3-6 words)
+- a 1-2 sentence summary of what it's about
+
+Return JSON only, no markdown fences:
+{"transcript":"...","title":"...","summary":"..."}` }
+    ]}],
+    generationConfig: { responseMimeType: 'application/json' }
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+    { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `API ${res.status}`); }
+  const d = await res.json();
+  const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  try { return JSON.parse(txt.replace(/```json|```/g,'').trim()); }
+  catch { return { transcript: txt, title: null, summary: '' }; }
+}
+
+// ── Card rendering ───────────────────────────────────────────
+function renderCards() {
+  const wrap = document.getElementById('cards');
+  const empty = document.getElementById('empty-note');
+  document.getElementById('rec-count').textContent = INBOX.recs.length ? `(${INBOX.recs.length})` : '';
+  if (!INBOX.recs.length) { wrap.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  wrap.innerHTML = INBOX.recs.map(r => {
+    const isProcessing = r.status === 'processing';
+    const isAssigned = !!r.assignedTo;
+    const statusHtml = isAssigned
+      ? `<span class="rcard-status assigned">✓ ${esc(r.assignedTo)}</span>`
+      : isProcessing
+        ? `<span class="rcard-status processing"><span class="spin"></span>Transcribing</span>`
+        : `<span class="rcard-status ready">Ready</span>`;
+    return `
+    <div class="rcard ${isProcessing?'processing':''} ${isAssigned?'assigned':''}" id="card-${r.id}"
+      draggable="${!isProcessing}" ondragstart="cardDragStart(event,'${r.id}')" ondragend="cardDragEnd(event)">
+      <div class="rcard-top">
+        <span class="rcard-icon">🎙️</span>
+        <input class="rcard-title" value="${esc(r.name)}" ${isProcessing?'disabled':''}
+          onblur="renameRec('${r.id}', this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+        ${statusHtml}
+        <button class="rcard-del" onclick="deleteRec('${r.id}')" title="Delete">×</button>
+      </div>
+      ${r.data ? `<audio controls src="${r.data}"></audio>` : ''}
+      ${r.summary ? `<div class="rcard-summary">${esc(r.summary)}</div>` : ''}
+      <div class="rcard-meta">
+        <span>📅 ${esc(r.time)}</span>
+        <span>🎵 ${esc(r.file)}</span>
+        ${r.size ? `<span>${(r.size/1024).toFixed(0)} KB</span>` : ''}
+      </div>
+      ${!isProcessing ? `
+      <button class="rcard-tx-toggle" onclick="toggleTx('${r.id}')">📄 Transcript</button>
+      <div class="rcard-transcript" id="tx-${r.id}">${esc(r.transcript||'(empty)')}</div>
+      ${!isAssigned ? `
+      <div class="rcard-assign-row">
+        Or pick a day:
+        <input type="date" id="date-${r.id}" max="${phToday()}">
+        <button class="rcard-assign-btn" onclick="assignFromInput('${r.id}')">Assign</button>
+      </div>` : `<div class="rcard-assigned-note">Sent to your diary — open that day to see it.</div>`}
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleTx(id) {
+  const el = document.getElementById('tx-' + id);
+  if (el) el.classList.toggle('open');
+}
+function renameRec(id, name) {
+  const r = INBOX.recs.find(x=>x.id===id);
+  if (r) { r.name = name.trim() || r.name; saveInbox(); }
+}
+function deleteRec(id) {
+  if (!confirm('Delete this recording from the inbox?')) return;
+  INBOX.recs = INBOX.recs.filter(r=>r.id!==id);
+  localStorage.removeItem(blobKey('inbox_' + id));
+  saveInbox(); renderCards();
+}
+
+// ── Drag to calendar ─────────────────────────────────────────
+let draggingId = null;
+function cardDragStart(e, id) {
+  draggingId = id;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function cardDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  draggingId = null;
+}
+
+function renderCalendar() {
+  const y = calView.getFullYear(), m = calView.getMonth();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-nav-label').textContent = `${months[m]} ${y}`;
+  const grid = document.getElementById('cal-grid2');
+  grid.innerHTML = '';
+  ['S','M','T','W','T','F','S'].forEach(d => {
+    const c = document.createElement('div'); c.className = 'cal-dow'; c.textContent = d; grid.appendChild(c);
+  });
+  const first = new Date(y,m,1).getDay();
+  const days = new Date(y,m+1,0).getDate();
+  const today = phToday();
+  // Peek at which dates already have diary content (best-effort, local cache only)
+  let existingDates = new Set();
+  try {
+    const raw = localStorage.getItem(DIARY_STORE);
+    if (raw) existingDates = new Set(Object.keys(JSON.parse(raw).pages || {}));
+  } catch(e) {}
+
+  for (let i=0;i<first;i++) { const c=document.createElement('div'); c.className='cal-day2 empty'; grid.appendChild(c); }
+  for (let d=1; d<=days; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const c = document.createElement('div');
+    let cls = 'cal-day2 drop-target';
+    if (ds === today) cls += ' today';
+    if (ds > today) cls += ' future';
+    if (existingDates.has(ds)) cls += ' has-entry';
+    c.className = cls;
+    c.textContent = d;
+    if (ds <= today) {
+      c.ondragover = (e) => { e.preventDefault(); c.classList.add('drag-hover'); };
+      c.ondragleave = () => c.classList.remove('drag-hover');
+      c.ondrop = (e) => { e.preventDefault(); c.classList.remove('drag-hover'); if (draggingId) assignRecording(draggingId, ds); };
+    }
+    grid.appendChild(c);
+  }
+}
+function calMove(dir) { calView.setMonth(calView.getMonth()+dir); renderCalendar(); }
+
+function assignFromInput(id) {
+  const input = document.getElementById('date-' + id);
+  const v = input?.value;
+  if (!v) { toast('Pick a date first'); return; }
+  assignRecording(id, v);
+}
+
+// ── The actual assignment: write into the diary's own storage ──
+async function assignRecording(recId, dateStr) {
+  const rec = INBOX.recs.find(r => r.id === recId);
+  if (!rec) return;
+  if (rec.status === 'processing') { toast('Still transcribing — wait a moment'); return; }
+  if (!confirm(`Send "${rec.name}" to ${dateStr}? It'll be added to that day's diary, important notes, and checklist.`)) return;
+
+  toast('Sending to diary…', 4000);
+  try {
+    await injectIntoDiaryDay(dateStr, rec);
+    rec.assignedTo = dateStr;
+    saveInbox();
+    renderCards();
+    renderCalendar();
+    toast(`✓ Sent to ${dateStr}`);
+  } catch (e) {
+    console.error(e);
+    toast('Could not assign: ' + e.message);
+  }
+}
+
+// Loads the target day's page object — from local cache if present,
+// otherwise from the Drive backup (since only 5 recent days are cached locally).
+async function loadDiaryState() {
+  const raw = localStorage.getItem(DIARY_STORE);
+  return raw ? JSON.parse(raw) : { pages:{}, cfg:{}, archivedKeys:[], global:{important:[]} };
+}
+
+async function injectIntoDiaryDay(dateStr, rec) {
+  const diary = await loadDiaryState();
+  if (!diary.pages) diary.pages = {};
+  if (!diary.global) diary.global = { important: [] };
+  if (!Array.isArray(diary.global.important)) diary.global.important = [];
+
+  let pg = diary.pages[dateStr];
+  const isLocallyCached = !!pg;
+
+  // If the day isn't cached locally, try pulling it from Drive first so we don't clobber it
+  if (!isLocallyCached && diary.cfg?.drive?.on && diary.cfg.drive.fileId) {
+    try {
+      const drivePages = await fetchDrivePagesReadOnly(diary.cfg);
+      if (drivePages && drivePages[dateStr]) pg = drivePages[dateStr];
+    } catch(e) { console.warn('Could not pull day from Drive, will create fresh:', e.message); }
+  }
+  if (!pg) pg = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
+
+  // Use Gemini to turn the transcript into diary text + important + checklist,
+  // same shape the diary itself produces from a recording.
+  const key = activeGeminiKey();
+  let diaryAddition = `## ${rec.name}\n${rec.transcript || ''}`;
+  let important = [];
+  let checklist = [];
+  if (key && rec.transcript && !rec.transcript.startsWith('(')) {
+    try {
+      const parsed = await geminiParseForDay(rec.transcript, rec.name, key);
+      if (parsed.diary) diaryAddition = `## ${rec.name}\n${parsed.diary}`;
+      important = parsed.important || [];
+      checklist = parsed.checklist || [];
+    } catch(e) { console.warn('Gemini day-parse failed, using raw transcript:', e.message); }
+  }
+
+  const sep = pg.diary ? '\n\n' : '';
+  pg.diary = (pg.diary || '') + sep + diaryAddition;
+
+  const recId = uid();
+  pg.recs = pg.recs || [];
+  pg.recs.push({
+    id: recId, name: rec.name, file: rec.file, data: rec.data,
+    time: rec.time, size: rec.size, transcript: rec.transcript, at: rec.at
+  });
+
+  important.forEach(t => {
+    if (t?.trim()) diary.global.important.push({ id: uid(), text: t.trim(), addedOn: dateStr, removedOn: null, at: new Date().toISOString() });
+  });
+  pg.check = pg.check || [];
+  checklist.forEach(i => {
+    if (i?.text?.trim()) {
+      const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
+      pg.check.push({
+        id: uid(), text: i.text.trim(), done: false,
+        time: i.time || null, at: new Date().toISOString(), carried: false,
+        explanation: i.explanation?.trim() || null,
+        subtasks: rawSubs
+          .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
+          .map(s => ({
+            id: uid(),
+            text: (typeof s==='string' ? s : s.text).trim(),
+            explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
+            done: false, at: new Date().toISOString()
+          }))
+      });
+    }
+  });
+
+  diary.pages[dateStr] = pg;
+
+  // Save the audio blob into the diary's blob namespace
+  saveBlob(recId, rec.data);
+
+  // Write back to local cache only if this date should be locally cached
+  // (today, or already was cached) — otherwise just push straight to Drive
+  // to avoid evicting a different recent day from the 5-page cache.
+  const today = phToday();
+  if (dateStr === today || isLocallyCached) {
+    persistDiaryLocal(diary);
+  }
+
+  // Always push to Drive if connected, merging full pages (not just local cache)
+  if (diary.cfg?.drive?.on) {
+    await pushDayToDrive(diary, dateStr, pg);
+  } else if (dateStr !== today && !isLocallyCached) {
+    // No Drive connected and day isn't cached locally — best effort: still write
+    // it locally even though it may get evicted by the 5-page cache later.
+    persistDiaryLocal(diary);
+    toast('Note: Drive isn\'t connected, so older days may not persist locally. Connect Drive in the diary\'s Settings.', 5000);
+  }
+}
+
+// Minimal re-implementation of the diary's own MAX_LOCAL_PAGES cache rule,
+// so we don't break its storage contract.
+function persistDiaryLocal(diary) {
+  try {
+    const MAX_LOCAL_PAGES = 5;
+    const today = phToday();
+    const all = Object.keys(diary.pages).sort().reverse();
+    const keep = new Set([today]);
+    for (const k of all) { if (keep.size >= MAX_LOCAL_PAGES) break; keep.add(k); }
+    const localPages = {};
+    for (const k of keep) {
+      if (!diary.pages[k]) continue;
+      // Strip audio blobs (they live in diary_blob_* keys already)
+      localPages[k] = {
+        ...diary.pages[k],
+        recs: (diary.pages[k].recs||[]).map(r => { if (r.data) saveBlob(r.id, r.data); return { ...r, data: null }; })
+      };
+    }
+    const payload = { pages: localPages, cfg: diary.cfg, archivedKeys: diary.archivedKeys || [], global: diary.global || {important:[]} };
+    localStorage.setItem(DIARY_STORE, JSON.stringify(payload));
+  } catch(e) { console.error('Could not persist diary local cache:', e); }
+}
+
+// ── Drive access (mirrors the diary's own functions) ──────────
+function ensureTokenClient(clientId) {
+  if (!clientId) return false;
+  if (tokenClient && tokenClient._cid === clientId) return true;
+  if (!window.google?.accounts?.oauth2) return false;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: DRIVE_SCOPE,
+    callback: (resp) => {
+      const res = tokenResolve, rej = tokenReject;
+      tokenResolve = null; tokenReject = null;
+      if (resp.error) { if (rej) rej(resp); return; }
+      driveToken.access_token = resp.access_token;
+      driveToken.expiresAt = Date.now() + ((resp.expires_in||3600)*1000) - 60000;
+      if (res) res(resp);
+    },
+    error_callback: (err) => {
+      const rej = tokenReject; tokenResolve = null; tokenReject = null;
+      if (rej) rej(err);
+    }
+  });
+  tokenClient._cid = clientId;
+  return true;
+}
+function requestToken(clientId, promptStyle) {
+  if (tokenRequestInFlight) return Promise.reject(new Error('token-request-already-in-flight'));
+  tokenRequestInFlight = true;
+  return new Promise((resolve, reject) => {
+    if (!ensureTokenClient(clientId)) { tokenRequestInFlight = false; reject(new Error('no-client-id')); return; }
+    tokenResolve = (v) => { tokenRequestInFlight = false; resolve(v); };
+    tokenReject  = (e) => { tokenRequestInFlight = false; reject(e); };
+    tokenClient.requestAccessToken({ prompt: promptStyle });
+  });
+}
+async function getValidToken(clientId) {
+  if (driveToken.access_token && Date.now() < driveToken.expiresAt) return driveToken.access_token;
+  await requestToken(clientId, 'select_account');
+  return driveToken.access_token || null;
+}
+async function driveFetch(clientId, url, opts={}) {
+  const token = await getValidToken(clientId);
+  if (!token) throw new Error('no-token');
+  const headers = Object.assign({}, opts.headers, { Authorization: 'Bearer ' + token });
+  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  if (!res.ok) { const text = await res.text().catch(()=>''); throw new Error('Drive API ' + res.status + ': ' + text); }
+  return res;
+}
+async function fetchDrivePagesReadOnly(diaryCfg) {
+  const clientId = diaryCfg.drive.clientId;
+  const fileId = diaryCfg.drive.fileId;
+  if (!clientId || !fileId) return null;
+  const res = await driveFetch(clientId, `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+  const text = await res.text();
+  const data = JSON.parse(text);
+  return data.pages || null;
+}
+async function pushDayToDrive(diary, dateStr, updatedPage) {
+  const clientId = diary.cfg.drive.clientId;
+  const fileId = diary.cfg.drive.fileId;
+  const folderId = diary.cfg.drive.folderId;
+  if (!clientId) { toast('Drive client ID missing — open the diary once to set it up'); return; }
+
+  let allPages = {};
+  if (fileId) {
+    try {
+      const res = await driveFetch(clientId, `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+      const text = await res.text();
+      const data = JSON.parse(text);
+      allPages = data.pages || {};
+    } catch(e) { console.warn('Could not read existing Drive backup, will create new content:', e.message); }
+  }
+  allPages[dateStr] = updatedPage;
+  const content = JSON.stringify({
+    pages: allPages,
+    cfg: diary.cfg,
+    archivedKeys: diary.archivedKeys || [],
+    global: diary.global || {important:[]}
+  });
+
+  if (fileId) {
+    await driveFetch(clientId, `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: content
+    });
+  } else {
+    let fid = folderId;
+    if (!fid) {
+      const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+      const fres = await driveFetch(clientId, `https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name)`);
+      const fdata = await fres.json();
+      fid = fdata.files?.[0]?.id;
+      if (!fid) {
+        const metadata = { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' };
+        const cres = await driveFetch(clientId, 'https://www.googleapis.com/drive/v3/files?fields=id', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(metadata)
+        });
+        fid = (await cres.json()).id;
+      }
+    }
+    const boundary = 'diaryBoundary' + Date.now();
+    const metadata = { name: DRIVE_FILENAME, mimeType: 'application/json', parents: fid ? [fid] : undefined };
+    const body =
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+    const cres = await driveFetch(clientId, 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body
+    });
+    const newFileId = (await cres.json()).id;
+    // Persist the new fileId/folderId back into the diary's own cfg
+    const rawDiary = JSON.parse(localStorage.getItem(DIARY_STORE) || '{}');
+    rawDiary.cfg = rawDiary.cfg || {};
+    rawDiary.cfg.drive = rawDiary.cfg.drive || {};
+    rawDiary.cfg.drive.fileId = newFileId;
+    rawDiary.cfg.drive.folderId = fid;
+    localStorage.setItem(DIARY_STORE, JSON.stringify(rawDiary));
+  }
+}
+
+async function geminiParseForDay(transcript, recName, key) {
+  const body = {
+    model: 'gemini-2.5-flash-lite',
+    contents: [{ parts: [{ text: `You are a personal diary assistant. From this voice memo, extract:
+1. diary entry text — narrative, 1st person, natural, well-organized. Format using simple Markdown:
+   - "## " for a short heading if appropriate
+   - "- " for bullet lists where helpful
+   - "1. " for numbered steps/sequences if relevant
+   - "**bold**" sparingly for emphasis
+   - otherwise normal paragraphs separated by blank lines
+2. important things to remember (array of short strings) — only lasting facts worth remembering long-term
+3. tasks/checklist items (array of objects)
+   Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
+
+Transcript: "${transcript}"
+
+Return JSON only, no markdown fences:
+{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}` }] }],
+    generationConfig: { responseMimeType: 'application/json' }
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+    { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (!res.ok) return {};
+  const d = await res.json();
+  const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  try { return JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { return {}; }
+}
+
+// ── Init ───────────────────────────────────────────────────
+function init() {
+  diaryCfgCache = loadDiaryCfgReadOnly();
+  if (diaryCfgCache?.theme) {
+    document.documentElement.setAttribute('data-theme', diaryCfgCache.theme === 'default' ? '' : diaryCfgCache.theme);
+  }
+  loadInbox();
+  renderCards();
+  renderCalendar();
+  renderKeyStatus();
+}
+init();
+</script>
+</body>
+</html>

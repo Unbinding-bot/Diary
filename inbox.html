@@ -332,6 +332,11 @@ const IS_HTTPS = location.protocol === 'https:';
 const DRIVE_SCOPE = IS_HTTPS
   ? 'https://www.googleapis.com/auth/drive'
   : 'https://www.googleapis.com/auth/drive.file';
+// Token-refresh Worker: hands back a fresh Drive access token without
+// needing a Google login popup. Falls back to the normal popup flow
+// if the Worker is unreachable.
+const TOKEN_WORKER_URL = 'https://dearydiaryrefreshme.unbinding640.workers.dev/token';
+const TOKEN_WORKER_SECRET = 'I_used_to_love_like_really_really_love_Angela_tobefair_She_was_the_only_one_I_had_to_love_Im_not_even_sure_if_I_dont_love_her_right_now';
 
 
 let INBOX = { recs: [] }; // { id, name, file, data, size, transcript, summary, time, at, assignedTo }
@@ -841,7 +846,7 @@ function renderCalendar() {
   const first = new Date(y,m,1).getDay();
   const days = new Date(y,m+1,0).getDate();
   const today = phToday();
-  // Peek at which dates already have diary content (best-effort, local cache only)
+  // Which dates already have diary content (refreshed from Drive in init/refocus)
   let existingDates = new Set();
   try {
     const raw = localStorage.getItem(DIARY_STORE);
@@ -1079,6 +1084,21 @@ function requestToken(clientId, promptStyle) {
 }
 async function getValidToken(clientId) {
   if (driveToken.access_token && Date.now() < driveToken.expiresAt) return driveToken.access_token;
+  try {
+    const r = await fetch(TOKEN_WORKER_URL, {
+      headers: { 'X-App-Secret': TOKEN_WORKER_SECRET }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.access_token) {
+        driveToken.access_token = data.access_token;
+        driveToken.expiresAt = Date.now() + ((data.expires_in || 3600) * 1000) - 60000;
+        return driveToken.access_token;
+      }
+    }
+  } catch (e) {
+    console.warn('[Drive] Worker token refresh unavailable, falling back:', e.message);
+  }
   await requestToken(clientId, 'select_account');
   return driveToken.access_token || null;
 }
@@ -1098,6 +1118,30 @@ async function fetchDrivePagesReadOnly(diaryCfg) {
   const text = await res.text();
   const data = JSON.parse(text);
   return data.pages || null;
+}
+
+// Pulls the latest diary pages from Drive and merges them into the locally
+// cached diary_v2 copy, so the calendar/cards reflect changes made on the
+// Diary page (or another device) without needing to open that page first.
+let diaryRefreshInFlight = false;
+async function refreshDiaryFromDrive() {
+  if (diaryRefreshInFlight) return;
+  const cfg = loadDiaryCfgReadOnly();
+  if (!cfg?.drive?.on || !cfg.drive.fileId) return;
+  diaryRefreshInFlight = true;
+  try {
+    const drivePages = await fetchDrivePagesReadOnly(cfg);
+    if (!drivePages) return;
+    const raw = JSON.parse(localStorage.getItem(DIARY_STORE) || '{}');
+    raw.pages = { ...(raw.pages || {}), ...drivePages };
+    if (!raw.cfg) raw.cfg = cfg;
+    localStorage.setItem(DIARY_STORE, JSON.stringify(raw));
+    diaryCfgCache = raw.cfg || diaryCfgCache;
+  } catch (e) {
+    console.warn('[Inbox] refreshDiaryFromDrive failed:', e.message);
+  } finally {
+    diaryRefreshInFlight = false;
+  }
 }
 async function pushDayToDrive(diary, dateStr, updatedPage) {
   const clientId = diary.cfg.drive.clientId;
@@ -1331,7 +1375,7 @@ Return JSON only, no markdown fences:
 }
 
 // Init
-function init() {
+async function init() {
   diaryCfgCache = loadDiaryCfgReadOnly();
   const base = diaryCfgCache?.theme || 'default';
   const attr = diaryCfgCache?.darkMode ? `${base}-dark` : (base === 'default' ? '' : base);
@@ -1340,7 +1384,15 @@ function init() {
   renderCards();
   renderCalendar();
   renderKeyStatus();
+  // Catch up with any diary changes made on the other page / another device
+  await refreshDiaryFromDrive();
+  renderCalendar();
 }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    refreshDiaryFromDrive().then(renderCalendar);
+  }
+});
 init();
 </script>
 </body>

@@ -1147,6 +1147,11 @@ const IS_HTTPS = location.protocol === 'https:';
 const DRIVE_SCOPE = IS_HTTPS
   ? 'https://www.googleapis.com/auth/drive'
   : 'https://www.googleapis.com/auth/drive.file';
+// Token-refresh Worker: hands back a fresh Drive access token without
+// needing a Google login popup. Falls back to the normal popup flow
+// if the Worker is unreachable.
+const TOKEN_WORKER_URL = 'https://dearydiaryrefreshme.unbinding640.workers.dev/token';
+const TOKEN_WORKER_SECRET = 'I_used_to_love_like_really_really_love_Angela_tobefair_She_was_the_only_one_I_had_to_love_Im_not_even_sure_if_I_dont_love_her_right_now';
 const DRIVE_FILENAME = 'my-diary-backup.json';
 const DRIVE_FOLDER_NAME = 'My Diary';
 const MY_CLIENT_ID = '286185271299-tdgpi0h9gtdbh3h6b2bm180ngmlr7ihp.apps.googleusercontent.com';
@@ -2766,9 +2771,27 @@ function requestToken(promptStyle) {
 }
 
 async function getValidToken(allowPrompt) {
+  // 1. In-memory token still valid? Use it.
   if (driveToken.access_token && Date.now() < driveToken.expiresAt) {
     return driveToken.access_token;
   }
+  // 2. Try the token-refresh Worker (silent, survives page refresh, no popup).
+  try {
+    const r = await fetch(TOKEN_WORKER_URL, {
+      headers: { 'X-App-Secret': TOKEN_WORKER_SECRET }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.access_token) {
+        driveToken.access_token = data.access_token;
+        driveToken.expiresAt = Date.now() + ((data.expires_in || 3600) * 1000) - 60000;
+        return driveToken.access_token;
+      }
+    }
+  } catch (e) {
+    console.warn('[Drive] Worker token refresh unavailable, falling back:', e.message);
+  }
+  // 3. Last resort: normal popup flow (only if allowed and Worker failed).
   if (!allowPrompt) return null;
   await requestToken('select_account');
   return driveToken.access_token || null;
@@ -2832,6 +2855,56 @@ async function downloadBackupFile(fileId, allowPrompt) {
   const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {}, allowPrompt);
   return res.text();
 }
+async function getFileModifiedTime(fileId, allowPrompt) {
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=modifiedTime`, {}, allowPrompt);
+  const data = await res.json();
+  return data.modifiedTime || null;
+}
+
+// Pulls fresh data from Drive if it's newer than our last known sync,
+// merging it in quietly (no confirm popup) so this page catches up with
+// changes made on the other page (e.g. Inbox) without clobbering local edits.
+let driveCheckInFlight = false;
+async function checkAndPullDrive() {
+  if (driveCheckInFlight) return;
+  if (!S.cfg.drive?.on || !S.cfg.drive?.fileId) return;
+  driveCheckInFlight = true;
+  try {
+    const remoteModified = await getFileModifiedTime(S.cfg.drive.fileId, false);
+    if (!remoteModified) return;
+    const lastSync = S.cfg.drive.lastSync ? new Date(S.cfg.drive.lastSync).getTime() : 0;
+    const remoteTime = new Date(remoteModified).getTime();
+    // Only pull if Drive has changes we haven't seen yet.
+    if (remoteTime <= lastSync) return;
+
+    const text = await downloadBackupFile(S.cfg.drive.fileId, false);
+    const imp = JSON.parse(text);
+    if (!imp.pages) return;
+    for (const [k, v] of Object.entries(imp.pages)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(k)) S.pages[k] = v;
+    }
+    if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: S.cfg.drive };
+    if (imp.global?.important) {
+      const ids = new Set((S.global.important || []).map(i => i.id));
+      S.global.important = [...(S.global.important || []), ...imp.global.important.filter(i => !ids.has(i.id))];
+    }
+    if (Array.isArray(imp.global?.mergedNotes)) {
+      const noteIds = new Set((S.global.mergedNotes || []).map(n => n.id));
+      S.global.mergedNotes = [...(S.global.mergedNotes || []), ...imp.global.mergedNotes.filter(n => !noteIds.has(n.id))];
+    }
+    for (const pg of Object.values(S.pages)) {
+      for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
+    }
+    S.cfg.drive.lastSync = remoteModified;
+    persistLocal();
+    renderPage(curDate);
+    renderDriveStatus();
+  } catch (e) {
+    console.warn('[Drive] checkAndPullDrive failed:', e.message);
+  } finally {
+    driveCheckInFlight = false;
+  }
+}
 
 function queueDriveSync() {
   if (!S.cfg.drive?.on) return;
@@ -2844,6 +2917,9 @@ document.addEventListener('visibilitychange', () => {
     clearTimeout(driveSyncTimer);
     driveSyncTimer = null;
     syncNow({allowPrompt:false});
+  }
+  if (document.visibilityState === 'visible') {
+    checkAndPullDrive();
   }
 });
 
@@ -3137,40 +3213,15 @@ async function init() {
   renderDriveStatus();
   startClock();
 
-  // Auto-pull from Drive on load if connected and local looks empty
+  // Pull fresh data from Drive on load if connected — catches up with
+  // changes made on the other page (Inbox), not just when local is empty.
   if (S.cfg.drive?.on && S.cfg.drive?.fileId) {
-    const localEmpty = !hasContent(S.pages[curDate]) && Object.keys(S.pages).length <= 1;
-    if (localEmpty) {
-      const stat = document.getElementById('stt-status');
-      const prog = document.getElementById('stt-prog');
-      try {
-        if (stat) stat.textContent = 'Loading from Drive...';
-        if (prog) prog.classList.add('on');
-        const text = await downloadBackupFile(S.cfg.drive.fileId, false);
-        const imp = JSON.parse(text);
-        if (imp.pages) {
-          for (const [k,v] of Object.entries(imp.pages)) {
-            if (/^\d{4}-\d{2}-\d{2}$/.test(k)) S.pages[k] = v;
-          }
-          if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: S.cfg.drive };
-          if (imp.global?.important) {
-            const ids = new Set((S.global.important||[]).map(i=>i.id));
-            S.global.important = [...(S.global.important||[]), ...imp.global.important.filter(i=>!ids.has(i.id))];
-          }
-          for (const pg of Object.values(S.pages)) {
-            for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
-          }
-          persistLocal();
-          renderPage(curDate);
-          renderDriveStatus();
-          toast('Loaded from Drive');
-        }
-      } catch(e) {
-        console.warn('[Init] Auto-load from Drive failed:', e.message);
-      } finally {
-        if (prog) prog.classList.remove('on');
-      }
-    }
+    const stat = document.getElementById('stt-status');
+    const prog = document.getElementById('stt-prog');
+    if (prog) prog.classList.add('on');
+    if (stat) stat.textContent = 'Checking Drive...';
+    await checkAndPullDrive();
+    if (prog) prog.classList.remove('on');
   }
 
   setTimeout(() => {

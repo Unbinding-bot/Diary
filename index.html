@@ -3213,7 +3213,7 @@ async function init() {
   renderDriveStatus();
   startClock();
 
-  // Pull fresh data from Drive on load if connected — catches up with
+  // Pull fresh data from Drive on load if connected, catches up with
   // changes made on the other page (Inbox), not just when local is empty.
   if (S.cfg.drive?.on && S.cfg.drive?.fileId) {
     const stat = document.getElementById('stt-status');

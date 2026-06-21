@@ -20,7 +20,7 @@ body {
   transition: background var(--trans), color var(--trans);
 }
 
-/* Topbar, matches diary's cover-colored bar */
+/* Topbar , matches diary's cover-colored bar */
 #topbar {
   position: sticky; top: 0; height: 50px;
   background: var(--cover); color: #fff;
@@ -45,7 +45,7 @@ body {
 }
 .intro strong { color: var(--accent2); }
 
-/* Upload tray, the "desk" metaphor */
+/* Upload tray , the "desk" metaphor */
 #tray {
   background: var(--paper); border: 2.5px dashed var(--line); border-radius: 14px;
   padding: 28px 20px; text-align: center; cursor: pointer;
@@ -275,7 +275,7 @@ body {
 <div id="wrap">
   <div class="intro">
     Drop in audio recordings from your device. <strong>Gemini transcribes each one</strong>,
-    gives it a title and a short summary, then drag it onto the day it belongs to.
+    gives it a title and a short summary , then drag it onto the day it belongs to.
     Nothing here touches your diary until you assign it.
   </div>
 
@@ -283,7 +283,7 @@ body {
        ondragover="trayDragOver(event)" ondragleave="trayDragLeave(event)" ondrop="trayDrop(event)">
     <div class="tray-icon">📥</div>
     <div class="tray-text">Drop audio files here, or click to choose</div>
-    <div class="tray-sub">MP3, WAV, M4A, OGG, multiple files at once is fine</div>
+    <div class="tray-sub">MP3, WAV, M4A, OGG , multiple files at once is fine</div>
     <input type="file" id="file-input" accept="audio/*" multiple onchange="filesChosen(this)">
   </div>
 
@@ -291,7 +291,7 @@ body {
     <div id="rec-pane">
       <div class="sec-label">Recordings <span class="count" id="rec-count"></span></div>
       <div id="cards"></div>
-      <div id="empty-note" style="display:none">No recordings yet, drop some audio above to get started.</div>
+      <div id="empty-note" style="display:none">No recordings yet , drop some audio above to get started.</div>
     </div>
 
     <div id="detail-pane">
@@ -318,7 +318,7 @@ body {
 <div id="toast"></div>
 
 <script>
-// AUDIO INBOX, completely separate storage from the diary.
+// AUDIO INBOX , completely separate storage from the diary.
 //  Writes assigned recordings directly into the diary's own
 //  storage format (localStorage['diary_v2'] + Drive backup),
 //  exactly as if recorded from within the diary itself.
@@ -432,7 +432,7 @@ function fmtDuration(totalSeconds) {
 }
 
 // Decode the file to find its duration. Returns null if decoding fails
-// (some formats/browsers can't decode, in that case we just proceed normally).
+// (some formats/browsers can't decode , in that case we just proceed normally).
 async function getAudioDuration(file) {
   try {
     const arrayBuf = await file.arrayBuffer();
@@ -461,7 +461,7 @@ function trimAudioBufferToWav(audioBuf, seconds) {
   return audioBufferToWavBlob(trimmed);
 }
 
-// Minimal WAV encoder (PCM 16-bit), no external library needed.
+// Minimal WAV encoder (PCM 16-bit) , no external library needed.
 function audioBufferToWavBlob(buf) {
   const numChannels = buf.numberOfChannels;
   const sampleRate = buf.sampleRate;
@@ -515,7 +515,7 @@ async function findDupeInDiary(name, size) {
     }
   }
 
-  // 2) Full Drive backup, if connected, catches days outside the local cache
+  // 2) Full Drive backup, if connected , catches days outside the local cache
   if (raw.cfg?.drive?.on && raw.cfg.drive.fileId) {
     try {
       const drivePages = await fetchDrivePagesReadOnly(raw.cfg);
@@ -536,9 +536,9 @@ async function intakeFile(file) {
   const inboxDupe = findDupeInInbox(file.name, file.size);
   if (inboxDupe) {
     const where = inboxDupe.assignedTo ? `already sent to ${inboxDupe.assignedTo}` : 'already in your inbox tray';
-    if (!confirm(`"${file.name}" looks like a duplicate, it's ${where} as "${inboxDupe.name}".\n\nAdd it again anyway?`)) return;
+    if (!confirm(`"${file.name}" looks like a duplicate , it's ${where} as "${inboxDupe.name}".\n\nAdd it again anyway?`)) return;
   } else {
-    // Check the diary itself (local cache + Drive), may take a moment if Drive lookup is needed
+    // Check the diary itself (local cache + Drive) , may take a moment if Drive lookup is needed
     toast('Checking for duplicates…', 1500);
     const diaryDupe = await findDupeInDiary(file.name, file.size);
     if (diaryDupe) {
@@ -569,33 +569,33 @@ async function processFile(file) {
 
     if (!key) {
       rec.status = 'ready';
-      rec.transcript = 'No Gemini key found, add one in the diary Settings, then delete and re-upload this file.';
+      rec.transcript = 'No Gemini key found , add one in the diary Settings, then delete and re-upload this file.';
       saveInbox(); renderCards(); renderDetail();
       return;
     }
 
-    // Check duration before sending anything, long files can overflow the
+    // Check duration before sending anything , long files can overflow the
     // browser's base64 string/array limits when encoded for the API request.
     let sendFile = file, sendDataUrl = data, trimmedNote = null;
     const durInfo = await getAudioDuration(file);
     if (durInfo && durInfo.duration > MAX_SAFE_SECONDS) {
       const lenStr = fmtDuration(durInfo.duration);
       const proceed = confirm(
-        `"${file.name}" is ${lenStr} long, too long to transcribe in full.\n\n` +
+        `"${file.name}" is ${lenStr} long , too long to transcribe in full.\n\n` +
         `Will you still continue? If so, only the first ${TRIM_SECONDS} seconds will be transcribed, ` +
         `just so you get the gist.`
       );
       if (!proceed) {
         rec.status = 'ready';
         rec.transcript = '';
-        rec.trimNote = `Skipped, ${lenStr} long, too long to transcribe.`;
+        rec.trimNote = `Skipped , ${lenStr} long, too long to transcribe.`;
         saveInbox(); renderCards(); renderDetail();
         return;
       }
       const wavBlob = trimAudioBufferToWav(durInfo.audioBuf, TRIM_SECONDS);
       sendFile = new File([wavBlob], file.name.replace(/\.[^.]+$/,'') + '-trimmed.wav', { type: 'audio/wav' });
       sendDataUrl = await toDataUrl(sendFile);
-      trimmedNote = `This recording is ${lenStr} long, only the first ${TRIM_SECONDS} seconds were transcribed.`;
+      trimmedNote = `This recording is ${lenStr} long , only the first ${TRIM_SECONDS} seconds were transcribed.`;
       rec.trimNote = trimmedNote;
     }
 
@@ -610,7 +610,7 @@ async function processFile(file) {
   } catch(e) {
     rec.status = 'ready';
     const msg = /allocation size overflow/i.test(e.message)
-      ? 'This recording is too long to transcribe in full. Try again, you\'ll be asked if you want just the first minute.'
+      ? 'This recording is too long to transcribe in full. Try again , you\'ll be asked if you want just the first minute.'
       : e.message;
     rec.transcript = '';
     rec.trimNote = 'Transcription failed: ' + msg;
@@ -765,7 +765,7 @@ function renderDetail() {
   }
 
   const assignRow = isAssigned
-    ? `<div class="detail-assigned-note">Sent to your diary on ${esc(r.assignedTo)}, open that day to see it.</div>`
+    ? `<div class="detail-assigned-note">Sent to your diary on ${esc(r.assignedTo)} , open that day to see it.</div>`
     : `<div class="detail-assign-row">
         Send to:
         <input type="date" id="detail-date-${r.id}" max="${phToday()}" value="${phToday()}">
@@ -879,7 +879,7 @@ function assignFromInput(id) {
 async function assignRecording(recId, dateStr) {
   const rec = INBOX.recs.find(r => r.id === recId);
   if (!rec) return;
-  if (rec.status === 'processing') { toast('Still transcribing, wait a moment'); return; }
+  if (rec.status === 'processing') { toast('Still transcribing , wait a moment'); return; }
   if (!confirm(`Send "${rec.name}" to ${dateStr}? It'll be added to that day's diary, important notes, and checklist.`)) return;
 
   toast('Sending to diary…', 4000);
@@ -898,7 +898,7 @@ async function assignRecording(recId, dateStr) {
   }
 }
 
-// Loads the target day's page object, from local cache if present,
+// Loads the target day's page object , from local cache if present,
 // otherwise from the Drive backup (since only 5 recent days are cached locally).
 async function loadDiaryState() {
   const raw = localStorage.getItem(DIARY_STORE);
@@ -910,6 +910,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
   if (!diary.pages) diary.pages = {};
   if (!diary.global) diary.global = { important: [] };
   if (!Array.isArray(diary.global.important)) diary.global.important = [];
+  if (!Array.isArray(diary.global.mergedNotes)) diary.global.mergedNotes = [];
 
   let pg = diary.pages[dateStr];
   const isLocallyCached = !!pg;
@@ -923,6 +924,20 @@ async function injectIntoDiaryDay(dateStr, rec) {
   }
   if (!pg) pg = { diary:'', imp:[], check:[], recs:[], created: new Date().toISOString() };
 
+  // For duplicate-checking we want as complete a picture as possible, not just
+  // the locally-cached 5 days , so when Drive is connected, pull the full
+  // page set (and global important list) in to check against, then merge
+  // back. This is a read used only for comparison; the page write-back below
+  // still only persists what it already would have.
+  let dedupPages = diary.pages;
+  if (diary.cfg?.drive?.on && diary.cfg.drive.fileId) {
+    try {
+      const drivePages = await fetchDrivePagesReadOnly(diary.cfg);
+      if (drivePages) dedupPages = { ...drivePages, ...diary.pages };
+    } catch(e) { console.warn('Could not pull full page set from Drive for dedupe check:', e.message); }
+  }
+  const dedupDiary = { global: diary.global, pages: dedupPages };
+
   // Use Gemini to turn the transcript into diary text + important + checklist,
   // same shape the diary itself produces from a recording.
   const key = activeGeminiKey();
@@ -935,7 +950,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
     try {
       const parsed = await geminiParseForDay(rec.transcript, rec.name, key);
       if (parsed.diary) diaryAddition = `## ${rec.name}\n${parsed.diary}`;
-      important = parsed.important || [];
+      important = await verifyImportantCandidates(parsed.important || [], key);
       checklist = parsed.checklist || [];
     } catch(e) { console.warn('Gemini day-parse failed, using raw transcript:', e.message); }
   }
@@ -951,28 +966,35 @@ async function injectIntoDiaryDay(dateStr, rec) {
     time: rec.time, size: rec.size, transcript: rec.transcript, at: rec.at
   });
 
-  important.forEach(t => {
-    if (t?.trim()) diary.global.important.push({ id: uid(), text: t.trim(), addedOn: dateStr, removedOn: null, at: new Date().toISOString() });
-  });
+  for (const t of important) {
+    if (!t?.trim()) continue;
+    const text = t.trim();
+    const isDup = key ? await dedupeImportantForDiary(dedupDiary, text, dateStr, key) : false;
+    if (!isDup) diary.global.important.push({ id: uid(), text, addedOn: dateStr, removedOn: null, at: new Date().toISOString() });
+  }
   pg.check = pg.check || [];
-  checklist.forEach(i => {
-    if (i?.text?.trim()) {
-      const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
-      pg.check.push({
-        id: uid(), text: i.text.trim(), done: false,
-        time: i.time || null, at: new Date().toISOString(), carried: false,
-        explanation: i.explanation?.trim() || null,
-        subtasks: rawSubs
-          .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
-          .map(s => ({
-            id: uid(),
-            text: (typeof s==='string' ? s : s.text).trim(),
-            explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
-            done: false, at: new Date().toISOString()
-          }))
-      });
-    }
-  });
+  // Make sure this page is visible to the dedupe check against itself too
+  dedupPages[dateStr] = pg;
+  for (const i of checklist) {
+    if (!i?.text?.trim()) continue;
+    const text = i.text.trim();
+    const isDup = key ? await dedupeChecklistForDiary(dedupDiary, text, dateStr, key) : false;
+    if (isDup) continue;
+    const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
+    pg.check.push({
+      id: uid(), text, done: false,
+      time: i.time || null, at: new Date().toISOString(), carried: false,
+      explanation: i.explanation?.trim() || null,
+      subtasks: rawSubs
+        .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
+        .map(s => ({
+          id: uid(),
+          text: (typeof s==='string' ? s : s.text).trim(),
+          explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
+          done: false, at: new Date().toISOString()
+        }))
+    });
+  }
 
   diary.pages[dateStr] = pg;
 
@@ -980,7 +1002,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
   saveBlob(recId, rec.data);
 
   // Write back to local cache only if this date should be locally cached
-  // (today, or already was cached), otherwise just push straight to Drive
+  // (today, or already was cached) , otherwise just push straight to Drive
   // to avoid evicting a different recent day from the 5-page cache.
   const today = phToday();
   if (dateStr === today || isLocallyCached) {
@@ -991,7 +1013,7 @@ async function injectIntoDiaryDay(dateStr, rec) {
   if (diary.cfg?.drive?.on) {
     await pushDayToDrive(diary, dateStr, pg);
   } else if (dateStr !== today && !isLocallyCached) {
-    // No Drive connected and day isn't cached locally, best effort: still write
+    // No Drive connected and day isn't cached locally , best effort: still write
     // it locally even though it may get evicted by the 5-page cache later.
     persistDiaryLocal(diary);
     toast('Note: Drive isn\'t connected, so older days may not persist locally. Connect Drive in the diary\'s Settings.', 5000);
@@ -1081,7 +1103,7 @@ async function pushDayToDrive(diary, dateStr, updatedPage) {
   const clientId = diary.cfg.drive.clientId;
   const fileId = diary.cfg.drive.fileId;
   const folderId = diary.cfg.drive.folderId;
-  if (!clientId) { toast('Drive client ID missing, open the diary once to set it up'); return; }
+  if (!clientId) { toast('Drive client ID missing , open the diary once to set it up'); return; }
 
   let allPages = {};
   if (fileId) {
@@ -1138,24 +1160,166 @@ async function pushDayToDrive(diary, dateStr, updatedPage) {
   }
 }
 
+// ============================================================
+// Duplicate detection (mirrors the diary's own logic, operating on
+// whatever `diary` global/pages object is passed in , since the Inbox
+// page works on a freshly-loaded snapshot rather than a live store).
+// ============================================================
+function normalizeForCompare(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function wordStem(w) {
+  return w.replace(/(ies|es|s)$/, '').replace(/(ing|ed)$/, '');
+}
+function isLikelyCandidate(a, b) {
+  const na = normalizeForCompare(a), nb = normalizeForCompare(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const wa = new Set(na.split(' ').filter(w => w.length > 2).map(wordStem));
+  const wb = new Set(nb.split(' ').filter(w => w.length > 2).map(wordStem));
+  if (!wa.size || !wb.size) return false;
+  let overlap = 0;
+  wa.forEach(w => { if (wb.has(w)) overlap++; });
+  return (overlap / Math.min(wa.size, wb.size)) >= 0.35;
+}
+async function geminiConfirmDuplicate(newText, candidates, key) {
+  if (!key || !candidates.length) return null;
+  const list = candidates.map((c, idx) => `${idx}: "${c.text}"`).join('\n');
+  const prompt = `New item: "${newText}"
+
+Existing items:
+${list}
+
+Does the new item mean essentially the same thing as one of the existing items (same task/fact, possibly worded differently)? Only say yes if you are highly confident they refer to the same underlying thing, not just a related topic.
+Return JSON only, no markdown: {"duplicateIndex": <index number or -1 if none>}`;
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) return null;
+    const d = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+    const idx = Number(parsed.duplicateIndex);
+    if (Number.isInteger(idx) && idx >= 0 && idx < candidates.length) return candidates[idx].id;
+    return null;
+  } catch (e) {
+    console.warn('[Dedupe] Gemini confirm failed:', e.message);
+    return null;
+  }
+}
+// Second-pass importance gate for medium-confidence candidates (mirrors the diary's verifyImportantCandidates)
+async function verifyImportantCandidates(candidates, key) {
+  const norm = candidates
+    .map(c => typeof c === 'string' ? { text: c, confidence: 'medium' } : c)
+    .filter(c => c?.text?.trim())
+    .map(c => ({ text: c.text.trim(), confidence: c.confidence === 'high' ? 'high' : 'medium' }));
+  const high = norm.filter(c => c.confidence === 'high').map(c => c.text);
+  const medium = norm.filter(c => c.confidence === 'medium');
+  if (!medium.length || !key) return high;
+  const list = medium.map((c, idx) => `${idx}: "${c.text}"`).join('\n');
+  const prompt = `These are candidate items for a persistent "Important" list in someone's personal diary (things worth remembering long-term, like lasting facts, big decisions, or meaningful events) , NOT a to-do list and NOT trivial one-off mentions.
+
+Candidates:
+${list}
+
+For each, decide if it truly belongs on a persistent important-things list. Be moderately strict: reject anything that's really just a routine task or a passing detail with no lasting relevance, but keep things that seem genuinely meaningful even if not permanent.
+Return JSON only, no markdown: {"keepIndexes":[0,2,...]}`;
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) return high;
+    const d = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+    const keep = Array.isArray(parsed.keepIndexes) ? parsed.keepIndexes : [];
+    const verifiedMedium = keep
+      .filter(idx => Number.isInteger(idx) && idx >= 0 && idx < medium.length)
+      .map(idx => medium[idx].text);
+    return [...high, ...verifiedMedium];
+  } catch (e) {
+    console.warn('[Verify] importance check failed, keeping high-confidence only:', e.message);
+    return high;
+  }
+}
+// Dedupe an incoming important-note text against diary.global.important.
+// Returns true if it was a duplicate (and records a merge note), false if it's new.
+async function dedupeImportantForDiary(diary, text, mentionDate, key) {
+  const all = diary.global.important || [];
+  const candidates = all.filter(i => isLikelyCandidate(text, i.text));
+  if (!candidates.length) return false;
+  const matchId = await geminiConfirmDuplicate(text, candidates, key);
+  if (!matchId) return false;
+  const canonical = all.find(i => i.id === matchId);
+  if (!canonical) return false;
+  if (mentionDate && canonical.addedOn > mentionDate) canonical.addedOn = mentionDate;
+  if (!Array.isArray(diary.global.mergedNotes)) diary.global.mergedNotes = [];
+  diary.global.mergedNotes.push({
+    id: uid(), kind: 'imp', targetId: canonical.id,
+    text, mergedOn: mentionDate || phToday(), at: new Date().toISOString()
+  });
+  return true;
+}
+// Dedupe an incoming checklist-task text against every (non-done) task across
+// all pages the Inbox currently has loaded for this diary snapshot.
+async function dedupeChecklistForDiary(diary, text, mentionDate, key) {
+  const headsRaw = [];
+  const supersededIds = new Set();
+  Object.values(diary.pages || {}).forEach(p => (p.check||[]).forEach(i => { if (i.srcId) supersededIds.add(i.srcId); }));
+  Object.values(diary.pages || {}).forEach(p => (p.check||[]).forEach(i => { if (!supersededIds.has(i.id)) headsRaw.push(i); }));
+  const candidates = headsRaw
+    .filter(i => !i.done && isLikelyCandidate(text, i.text))
+    .map(i => ({ id: i.id, text: i.text, _item: i }));
+  if (!candidates.length) return false;
+  const matchId = await geminiConfirmDuplicate(text, candidates, key);
+  if (!matchId) return false;
+  const canonical = candidates.find(c => c.id === matchId)?._item;
+  if (!canonical) return false;
+  if (!Array.isArray(diary.global.mergedNotes)) diary.global.mergedNotes = [];
+  diary.global.mergedNotes.push({
+    id: uid(), kind: 'check', targetId: canonical.id,
+    text, mergedOn: mentionDate || phToday(), at: new Date().toISOString()
+  });
+  return true;
+}
+
 async function geminiParseForDay(transcript, recName, key) {
   const body = {
     model: 'gemini-2.5-flash-lite',
     contents: [{ parts: [{ text: `You are a personal diary assistant. From this voice memo, extract:
-1. diary entry text, narrative, 1st person, natural, well-organized. Format using simple Markdown:
+1. diary entry text , narrative, 1st person, natural, well-organized. Format using simple Markdown:
    - "## " for a short heading if appropriate
    - "- " for bullet lists where helpful
    - "1. " for numbered steps/sequences if relevant
    - "**bold**" sparingly for emphasis
    - otherwise normal paragraphs separated by blank lines
-2. important things to remember (array of short strings), only lasting facts worth remembering long-term
+2. important things to remember (array of objects, NOT plain strings): things genuinely worth keeping on a persistent "important" list , lasting facts (allergies, preferences, recurring people/dates) OR things that are clearly significant even if not permanent (a big decision, a meaningful event, something with real consequences). Do NOT include small one-off errands or trivial mentions , those belong in the checklist instead.
+   Each entry: {"text":"...","confidence":"high"|"medium"} where "high" = clearly important/lasting, "medium" = plausibly important but less certain.
 3. tasks/checklist items (array of objects)
    Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
 
 Transcript: "${transcript}"
 
 Return JSON only, no markdown fences:
-{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}` }] }],
+{"diary":"...","important":[{"text":"...","confidence":"high"}],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}` }] }],
     generationConfig: { responseMimeType: 'application/json' }
   };
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,

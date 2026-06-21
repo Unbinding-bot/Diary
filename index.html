@@ -326,6 +326,10 @@ body {
 .imp-item.imp-removed .imp-text { text-decoration: line-through; color: var(--ink3); }
 .imp-item.imp-removed .imp-bullet { color: var(--ink3); }
 .imp-removed-note { font-size: 11px; font-family: var(--font-ui); color: var(--ink3); font-style: italic; margin-top: 2px; }
+.merged-note { font-size: 11px; font-family: var(--font-ui); color: var(--ink3); font-style: italic; margin-top: 2px; cursor: pointer; }
+.merged-note:hover { color: var(--accent); }
+.sec-btn.dedupe-busy { opacity: 0.6; pointer-events: none; }
+.sec-btn.dedupe-busy::after { content: '…'; }
 
 /* Explanations */
 .explanation-wrap { margin-top: 3px; padding-left: 1px; }
@@ -866,6 +870,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
             <div class="sec-hdr">
               <div class="sec-title">Important</div>
               <div class="sec-actions">
+                <button class="sec-btn" id="dedupe-imp-btn" onclick="manualDedupeImportant()" title="Find and merge duplicate important notes">Check duplicates</button>
                 <button class="sec-btn" onclick="focusAddImp()">+ Add</button>
               </div>
             </div>
@@ -882,6 +887,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
             <div class="sec-hdr">
               <div class="sec-title">Checklist</div>
               <div class="sec-actions">
+                <button class="sec-btn" id="dedupe-check-btn" onclick="manualDedupeChecklist()" title="Find and merge duplicate tasks">Check duplicates</button>
                 <button class="sec-btn" onclick="focusAddCheck()">+ Add</button>
                 <button class="sec-btn" onclick="clearDone()">Clear done</button>
               </div>
@@ -1121,7 +1127,7 @@ const STORE = 'diary_v2';
 let S = {
   pages: {},
   archivedKeys: [],
-  global: { important: [] },
+  global: { important: [], mergedNotes: [] },
   cfg: {
     theme: 'default', darkMode: false, font: "'Caveat',cursive", lh: 34,
     stt: 'gemini', keys: [], drive: {on:false}, sfx: {},
@@ -1200,7 +1206,7 @@ function blobKey(id) { return BLOB_PREFIX + id; }
 function saveBlob(id, data) {
   if (!data) return true;
   try { localStorage.setItem(blobKey(id), data); return true; } catch(e) {
-    console.warn('Could not save blob', id, '— storage full?');
+    console.warn('Could not save blob', id, ', storage full?');
     return false;
   }
 }
@@ -1305,6 +1311,7 @@ function load() {
     S.archivedKeys = p.archivedKeys || [];
     S.global = p.global || { important: [] };
     if (!Array.isArray(S.global.important)) S.global.important = [];
+    if (!Array.isArray(S.global.mergedNotes)) S.global.mergedNotes = [];
     // One-time migration: pull any legacy per-page `imp` items into the global list
     let migrated = false;
     for (const [date, pg] of Object.entries(S.pages)) {
@@ -1399,7 +1406,7 @@ function renderPage(d) {
   document.getElementById('mob-date-input').min = oldestAllowedDate();
   document.getElementById('mob-date-input').max = today;
 
-  // This page didn't exist locally — it may still exist in the Drive backup
+  // This page didn't exist locally , it may still exist in the Drive backup
   // (written from another device, or via the Audio Inbox). Check in the
   // background and re-render if Drive actually has content for this day.
   if (wasMissingLocally && S.cfg.drive?.on && S.cfg.drive?.fileId) {
@@ -1473,6 +1480,9 @@ function renderImp(pg) {
     const removedNote = isRemovedToday
       ? `<div class="imp-removed-note">Removed on ${esc(fmtDate(i.removedOn))}</div>`
       : '';
+    const mergeNotes = mergedNotesFor('imp', i.id)
+      .map(n => `<div class="merged-note" title="Click to dismiss this note" onclick="dismissMergedNote('${n.id}')">Merged duplicate (${esc(fmtDate(n.mergedOn))}): "${esc(n.text)}"</div>`)
+      .join('');
     return `
     <div class="imp-item ${isRemovedToday ? 'imp-removed' : ''}">
       <span class="imp-bullet">${isRemovedToday ? '☆' : '★'}</span>
@@ -1489,6 +1499,7 @@ function renderImp(pg) {
           </div>` : ''}
         </div>
         ${removedNote}
+        ${mergeNotes}
         <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
           <div class="explanation-text" contenteditable="true" spellcheck="false"
             data-ph="Add an explanation..."
@@ -1502,11 +1513,20 @@ function renderImp(pg) {
   }).join('');
 }
 function focusAddImp() { document.getElementById('imp-input').focus(); }
-function addImp() {
+async function addImp() {
   const el = document.getElementById('imp-input');
   const text = el.value.trim(); if (!text) return;
-  S.global.important.push({ id: uid(), text, addedOn: phToday(), removedOn: null, at: new Date().toISOString() });
-  save(); el.value = ''; renderImp(page(curDate)); setTimeout(syncDiaryHeight, 50);
+  el.value = ''; // clear immediately so typing isn't blocked by the dedupe check
+  const today = phToday();
+  let isDup = false;
+  try { isDup = await dedupeImportantBeforeAdd(text, today); } catch {}
+  if (isDup) {
+    save(); renderImp(page(curDate)); setTimeout(syncDiaryHeight, 50);
+    toast('Looks like a duplicate , merged into the existing note.');
+    return;
+  }
+  S.global.important.push({ id: uid(), text, addedOn: today, removedOn: null, at: new Date().toISOString() });
+  save(); renderImp(page(curDate)); setTimeout(syncDiaryHeight, 50);
 }
 function updImp(id, text) {
   const i = (S.global.important||[]).find(x=>x.id===id);
@@ -1542,6 +1562,10 @@ function renderCheck(pg) {
       ${s.explanation ? `<div class="subtask-expl">${esc(s.explanation)}</div>` : ''}
     `).join('');
 
+    const mergeNotes = mergedNotesFor('check', i.id)
+      .map(n => `<div class="merged-note" title="Click to dismiss this note" onclick="dismissMergedNote('${n.id}')">Merged duplicate (${esc(fmtDate(n.mergedOn))}): "${esc(n.text)}"</div>`)
+      .join('');
+
     return `
     <div class="check-item${i.done?' done':''}">
       <div class="check-box" onclick="toggleCheck('${i.id}')"></div>
@@ -1562,6 +1586,7 @@ function renderCheck(pg) {
           </div>
           <button class="check-del" onclick="delCheck('${i.id}')">×</button>
         </div>
+        ${mergeNotes}
         ${i.explanation ? `<button class="expl-chip open" id="expl-chip-${i.id}" onclick="toggleExplanation('${i.id}','check')">Explain</button>` : ''}
         <div class="explanation-wrap" id="expl-${i.id}" style="${i.explanation?'':'display:none'}">
           <div class="explanation-text" contenteditable="true" spellcheck="false"
@@ -1601,12 +1626,22 @@ function renderCheck(pg) {
 })();
 
 function focusAddCheck() { document.getElementById('check-input').focus(); }
-function addCheck() {
+async function addCheck() {
   const el = document.getElementById('check-input');
   const te = document.getElementById('check-time');
   const text = el.value.trim(); if (!text) return;
-  page(curDate).check.push({ id:uid(), text, done:false, time:te.value.trim()||null, at:new Date().toISOString(), carried:false });
-  save(); el.value=''; te.value=''; renderCheck(page(curDate)); setTimeout(syncDiaryHeight, 50);
+  const time = te.value.trim();
+  el.value=''; te.value=''; // clear immediately so typing isn't blocked by the dedupe check
+  const today = phToday();
+  let isDup = false;
+  try { isDup = await dedupeChecklistBeforeAdd(text, today); } catch {}
+  if (isDup) {
+    save(); renderCheck(page(curDate)); setTimeout(syncDiaryHeight, 50);
+    toast('Looks like a duplicate , merged into the existing task.');
+    return;
+  }
+  page(curDate).check.push({ id:uid(), text, done:false, time:time||null, at:new Date().toISOString(), carried:false });
+  save(); renderCheck(page(curDate)); setTimeout(syncDiaryHeight, 50);
 }
 function updCheck(id, text) {
   const i = page(curDate).check.find(x=>x.id===id);
@@ -1654,11 +1689,16 @@ function toggleCheck(id) {
 function delCheck(id) {
   const pg = page(curDate);
   pg.check = pg.check.filter(i=>i.id!==id);
+  S.global.mergedNotes = (S.global.mergedNotes||[]).filter(n => !(n.kind==='check' && n.targetId===id));
   save(); renderCheck(pg); setTimeout(syncDiaryHeight, 50);
 }
 function clearDone() {
   const pg = page(curDate);
+  const clearedIds = new Set(pg.check.filter(i=>i.done).map(i=>i.id));
   pg.check = pg.check.filter(i=>!i.done);
+  if (clearedIds.size) {
+    S.global.mergedNotes = (S.global.mergedNotes||[]).filter(n => !(n.kind==='check' && clearedIds.has(n.targetId)));
+  }
   save(); renderCheck(pg); toast('Cleared completed tasks'); setTimeout(syncDiaryHeight, 50);
 }
 
@@ -1782,7 +1822,237 @@ Return JSON only, no markdown:
   }
 }
 
-// Diary
+// ============================================================
+// Duplicate detection & merging (Important + Checklist)
+// ============================================================
+// Strategy: cheap local normalization first to gather *candidates*,
+// then (only if candidates exist and a Gemini key is set) ask Gemini
+// to confirm true semantic duplicates among those candidates.
+// On a confirmed duplicate, the OLDEST item (by date) is kept as the
+// canonical one; the newer occurrence is never added as a separate
+// list entry. Instead a small "merged" note is attached to the
+// canonical item's day-of-mention list so nothing silently vanishes.
+
+function normalizeForCompare(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Very light stemming so "allergic/allergy", "peanuts/peanut" etc. count as the same word.
+function wordStem(w) {
+  return w.replace(/(ies|es|s)$/, '').replace(/(ing|ed)$/, '');
+}
+// Cheap, deliberately GENEROUS candidate filter: its only job is to avoid
+// calling Gemini on pairs with zero plausible relation. False positives here
+// just cost one extra (cheap) Gemini call; false negatives silently break
+// duplicate detection entirely , so this errs toward "maybe".
+function isLikelyCandidate(a, b) {
+  const na = normalizeForCompare(a), nb = normalizeForCompare(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const wa = new Set(na.split(' ').filter(w => w.length > 2).map(wordStem));
+  const wb = new Set(nb.split(' ').filter(w => w.length > 2).map(wordStem));
+  if (!wa.size || !wb.size) return false;
+  let overlap = 0;
+  wa.forEach(w => { if (wb.has(w)) overlap++; });
+  const ratio = overlap / Math.min(wa.size, wb.size);
+  return ratio >= 0.35;
+}
+
+// Ask Gemini to confirm which candidate (if any) is a true duplicate of newText.
+// Returns the matched candidate's id, or null.
+async function geminiConfirmDuplicate(newText, candidates) {
+  const key = activeKey();
+  if (!key || !candidates.length) return null;
+  const list = candidates.map((c, idx) => `${idx}: "${c.text}"`).join('\n');
+  const prompt = `New item: "${newText}"
+
+Existing items:
+${list}
+
+Does the new item mean essentially the same thing as one of the existing items (same task/fact, possibly worded differently)? Only say yes if you are highly confident they refer to the same underlying thing, not just a related topic.
+Return JSON only, no markdown: {"duplicateIndex": <index number or -1 if none>}`;
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) return null;
+    const d = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+    const idx = Number(parsed.duplicateIndex);
+    if (Number.isInteger(idx) && idx >= 0 && idx < candidates.length) return candidates[idx].id;
+    return null;
+  } catch (e) {
+    console.warn('[Dedupe] Gemini confirm failed:', e.message);
+    return null;
+  }
+}
+
+// ---- Important list dedupe ----
+// Checks `text` against all current important items. If a duplicate is
+// found, records a merge note against the OLDEST matching item and
+// returns true (caller should skip pushing a new item). Otherwise false.
+async function dedupeImportantBeforeAdd(text, mentionDate) {
+  const all = S.global.important || [];
+  const candidates = all.filter(i => isLikelyCandidate(text, i.text));
+  if (!candidates.length) return false;
+  const matchId = await geminiConfirmDuplicate(text, candidates);
+  if (!matchId) return false;
+  const canonical = all.find(i => i.id === matchId);
+  if (!canonical) return false;
+  // Oldest wins: if the existing "canonical" is actually newer than mentionDate,
+  // the new mention is really the older one , swap which item is canonical.
+  if (mentionDate && canonical.addedOn > mentionDate) {
+    canonical.addedOn = mentionDate;
+  }
+  S.global.mergedNotes.push({
+    id: uid(), kind: 'imp', targetId: canonical.id,
+    text, mergedOn: mentionDate || phToday(), at: new Date().toISOString()
+  });
+  return true;
+}
+
+// ---- Checklist dedupe ----
+// Compares against the "head" of every carry-chain across all days
+// (i.e. every checklist item that isn't itself superseded by a later carry).
+function allChecklistHeads() {
+  const heads = [];
+  const supersededIds = new Set();
+  Object.values(S.pages).forEach(p => {
+    (p.check || []).forEach(i => { if (i.srcId) supersededIds.add(i.srcId); });
+  });
+  Object.values(S.pages).forEach(p => {
+    (p.check || []).forEach(i => { if (!supersededIds.has(i.id)) heads.push(i); });
+  });
+  return heads;
+}
+
+async function dedupeChecklistBeforeAdd(text, mentionDate) {
+  const heads = allChecklistHeads();
+  const candidates = heads
+    .filter(i => !i.done && isLikelyCandidate(text, i.text))
+    .map(i => ({ id: i.id, text: i.text, _item: i }));
+  if (!candidates.length) return false;
+  const matchId = await geminiConfirmDuplicate(text, candidates);
+  if (!matchId) return false;
+  const canonical = candidates.find(c => c.id === matchId)?._item;
+  if (!canonical) return false;
+  S.global.mergedNotes.push({
+    id: uid(), kind: 'check', targetId: canonical.id,
+    text, mergedOn: mentionDate || phToday(), at: new Date().toISOString()
+  });
+  return true;
+}
+
+// ---- Merge notes lookup for rendering ----
+function mergedNotesFor(kind, targetId) {
+  return (S.global.mergedNotes || []).filter(n => n.kind === kind && n.targetId === targetId);
+}
+function dismissMergedNote(noteId) {
+  S.global.mergedNotes = (S.global.mergedNotes || []).filter(n => n.id !== noteId);
+  save(); renderImp(page(curDate)); renderCheck(page(curDate));
+}
+
+// ---- Manual "Check duplicates" sweep over existing items ----
+async function manualDedupeImportant() {
+  const key = activeKey();
+  if (!key) { toast('Add a Gemini API key in Settings'); return; }
+  const btn = document.getElementById('dedupe-imp-btn');
+  btn?.classList.add('dedupe-busy');
+  toast('Scanning important notes for duplicates…', 6000);
+  try {
+    const all = [...(S.global.important || [])].sort((a,b) => a.addedOn.localeCompare(b.addedOn));
+    let mergedCount = 0;
+    for (let i = 0; i < all.length; i++) {
+      const item = all[i];
+      if (item._removedAsDup) continue;
+      const rest = all.slice(i+1).filter(o => !o._removedAsDup);
+      const candidates = rest.filter(o => isLikelyCandidate(item.text, o.text));
+      if (!candidates.length) continue;
+      const matchId = await geminiConfirmDuplicate(item.text, candidates);
+      if (!matchId) continue;
+      const dup = all.find(o => o.id === matchId);
+      if (!dup) continue;
+      // item is older (we sorted ascending), so it stays canonical
+      dup._removedAsDup = true;
+      S.global.mergedNotes.push({
+        id: uid(), kind: 'imp', targetId: item.id,
+        text: dup.text, mergedOn: dup.addedOn, at: new Date().toISOString()
+      });
+      mergedCount++;
+    }
+    if (mergedCount) {
+      S.global.important = all.filter(i => !i._removedAsDup).map(({_removedAsDup, ...rest}) => rest);
+      save(); renderImp(page(curDate));
+      toast(`Merged ${mergedCount} duplicate${mergedCount===1?'':'s'}!`);
+    } else {
+      toast('No duplicates found.');
+    }
+  } catch (e) {
+    toast('Dedupe error: ' + e.message);
+  } finally {
+    btn?.classList.remove('dedupe-busy');
+  }
+}
+
+async function manualDedupeChecklist() {
+  const key = activeKey();
+  if (!key) { toast('Add a Gemini API key in Settings'); return; }
+  const btn = document.getElementById('dedupe-check-btn');
+  btn?.classList.add('dedupe-busy');
+  toast('Scanning checklist for duplicates…', 6000);
+  try {
+    const heads = allChecklistHeads()
+      .filter(i => !i.done)
+      .sort((a,b) => (a.carryFrom||a.at||'').localeCompare(b.carryFrom||b.at||''));
+    let mergedCount = 0;
+    const removedIds = new Set();
+    for (let i = 0; i < heads.length; i++) {
+      const item = heads[i];
+      if (removedIds.has(item.id)) continue;
+      const rest = heads.slice(i+1).filter(o => !removedIds.has(o.id));
+      const candidates = rest.filter(o => isLikelyCandidate(item.text, o.text));
+      if (!candidates.length) continue;
+      const matchId = await geminiConfirmDuplicate(item.text, candidates);
+      if (!matchId) continue;
+      const dup = heads.find(o => o.id === matchId);
+      if (!dup) continue;
+      removedIds.add(dup.id);
+      S.global.mergedNotes.push({
+        id: uid(), kind: 'check', targetId: item.id,
+        text: dup.text, mergedOn: dup.carryFrom || (dup.at||'').slice(0,10) || phToday(),
+        at: new Date().toISOString()
+      });
+      mergedCount++;
+    }
+    if (mergedCount) {
+      Object.values(S.pages).forEach(p => {
+        p.check = (p.check || []).filter(i => !removedIds.has(i.id));
+      });
+      save(); renderCheck(page(curDate));
+      toast(`Merged ${mergedCount} duplicate${mergedCount===1?'':'s'}!`);
+    } else {
+      toast('No duplicates found.');
+    }
+  } catch (e) {
+    toast('Dedupe error: ' + e.message);
+  } finally {
+    btn?.classList.remove('dedupe-busy');
+  }
+}
+
+
 function saveDiary() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
@@ -2093,7 +2363,8 @@ async function geminiParse(transcript, recName, ph, key) {
    - use "1. " for numbered steps/sequences if relevant
    - use "**bold**" sparingly for emphasis on key moments
    - otherwise just write normal paragraphs separated by blank lines
-2. important things to remember (array of short strings), only lasting/persistent facts worth remembering long-term, not one-off events
+2. important things to remember (array of objects, NOT plain strings): things genuinely worth keeping on a persistent "important" list , lasting facts (allergies, preferences, recurring people/dates) OR things that are clearly significant even if not permanent (a big decision, a meaningful event, something with real consequences). Do NOT include small one-off errands or trivial mentions , those belong in the checklist instead, not here.
+   Each entry: {"text":"...","confidence":"high"|"medium"} where "high" = clearly important/lasting, "medium" = plausibly important but less certain.
 3. tasks/checklist items (array of objects)
    Each task: {"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}
    - "explanation" is optional: a 1-sentence note about what this task involves
@@ -2102,7 +2373,7 @@ async function geminiParse(transcript, recName, ph, key) {
 Transcript: "${transcript}"
 
 Return JSON only, no markdown fences:
-{"diary":"...","important":["..."],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}`}]}],
+{"diary":"...","important":[{"text":"...","confidence":"high"}],"checklist":[{"text":"...","time":"...","explanation":"...","subtasks":[{"text":"...","explanation":"..."}]}]}`}]}],
     generationConfig:{responseMimeType:'application/json'}
   };
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
@@ -2118,31 +2389,80 @@ Return JSON only, no markdown fences:
       pg.diary += sep + `## ${recName}\n${parsed.diary}`;
       document.getElementById('diary-ta').value = pg.diary;
     }
-    (parsed.important||[]).forEach(t => {
-      if (t?.trim()) S.global.important.push({ id:uid(), text:t.trim(), addedOn: curDate, removedOn: null, at: ph.toISOString() });
-    });
-    (parsed.checklist||[]).forEach(i => {
-      if (i?.text?.trim()) {
-        const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
-        const newItem = {
-          id:uid(), text:i.text.trim(), done:false,
-          time:i.time||null, at:ph.toISOString(), carried:false,
-          explanation: i.explanation?.trim()||null,
-          subtasks: rawSubs
-            .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
-            .map(s => ({
-              id: uid(),
-              text: (typeof s==='string' ? s : s.text).trim(),
-              explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
-              done: false,
-              at: ph.toISOString()
-            }))
-        };
-        pg.check.push(newItem);
-      }
-    });
+    const verifiedImportant = await verifyImportantCandidates(parsed.important||[], key);
+    for (const t of verifiedImportant) {
+      const isDup = await dedupeImportantBeforeAdd(t, curDate);
+      if (!isDup) S.global.important.push({ id:uid(), text:t, addedOn: curDate, removedOn: null, at: ph.toISOString() });
+    }
+    for (const i of (parsed.checklist||[])) {
+      if (!i?.text?.trim()) continue;
+      const text = i.text.trim();
+      const isDup = await dedupeChecklistBeforeAdd(text, curDate);
+      if (isDup) continue;
+      const rawSubs = Array.isArray(i.subtasks) ? i.subtasks : [];
+      const newItem = {
+        id:uid(), text, done:false,
+        time:i.time||null, at:ph.toISOString(), carried:false,
+        explanation: i.explanation?.trim()||null,
+        subtasks: rawSubs
+          .filter(s => (typeof s==='string' ? s : s?.text||'').trim())
+          .map(s => ({
+            id: uid(),
+            text: (typeof s==='string' ? s : s.text).trim(),
+            explanation: (typeof s==='object' ? s.explanation||'' : '').trim() || null,
+            done: false,
+            at: ph.toISOString()
+          }))
+      };
+      pg.check.push(newItem);
+    }
     save(); renderImp(pg); renderCheck(pg);
   } catch(e) { console.warn(e); }
+}
+
+// Second-pass verification gate for "important" candidates extracted from a
+// voice memo. High-confidence items pass straight through. Medium-confidence
+// items get a focused yes/no re-check before being allowed onto the
+// persistent Important list, so the bar for what lands there stays high.
+async function verifyImportantCandidates(candidates, key) {
+  const norm = candidates
+    .map(c => typeof c === 'string' ? { text: c, confidence: 'medium' } : c)
+    .filter(c => c?.text?.trim())
+    .map(c => ({ text: c.text.trim(), confidence: c.confidence === 'high' ? 'high' : 'medium' }));
+  const high = norm.filter(c => c.confidence === 'high').map(c => c.text);
+  const medium = norm.filter(c => c.confidence === 'medium');
+  if (!medium.length || !key) return high;
+  const list = medium.map((c, idx) => `${idx}: "${c.text}"`).join('\n');
+  const prompt = `These are candidate items for a persistent "Important" list in someone's personal diary (things worth remembering long-term, like lasting facts, big decisions, or meaningful events) , NOT a to-do list and NOT trivial one-off mentions.
+
+Candidates:
+${list}
+
+For each, decide if it truly belongs on a persistent important-things list. Be moderately strict: reject anything that's really just a routine task or a passing detail with no lasting relevance, but keep things that seem genuinely meaningful even if not permanent.
+Return JSON only, no markdown: {"keepIndexes":[0,2,...]}`;
+  try {
+    const body = {
+      model: 'gemini-2.5-flash-lite',
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) return high;
+    const d = await res.json();
+    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+    const keep = Array.isArray(parsed.keepIndexes) ? parsed.keepIndexes : [];
+    const verifiedMedium = keep
+      .filter(idx => Number.isInteger(idx) && idx >= 0 && idx < medium.length)
+      .map(idx => medium[idx].text);
+    return [...high, ...verifiedMedium];
+  } catch (e) {
+    console.warn('[Verify] importance check failed, keeping high-confidence only:', e.message);
+    return high;
+  }
 }
 
 function syncDiaryHeight() { /* no-op */ }
@@ -2577,7 +2897,7 @@ async function syncNow(opts={}) {
 
     let mergedPages = { ...S.pages };
     let drivePagesForFallback = null;
-    let mergedGlobal = { important: [...(S.global?.important||[])] };
+    let mergedGlobal = { important: [...(S.global?.important||[])], mergedNotes: [...(S.global?.mergedNotes||[])] };
     console.log('[Drive] Local pages to upload:', Object.keys(mergedPages));
     try {
       const existingFileId = S.cfg.drive.fileId;
@@ -2599,6 +2919,12 @@ async function syncNow(opts={}) {
           const localIds = new Set(mergedGlobal.important.map(i=>i.id));
           for (const item of driveData.global.important) {
             if (!localIds.has(item.id)) mergedGlobal.important.push(item);
+          }
+        }
+        if (Array.isArray(driveData.global?.mergedNotes)) {
+          const localNoteIds = new Set(mergedGlobal.mergedNotes.map(n=>n.id));
+          for (const note of driveData.global.mergedNotes) {
+            if (!localNoteIds.has(note.id)) mergedGlobal.mergedNotes.push(note);
           }
         }
         S.archivedKeys = [...new Set([...(S.archivedKeys||[]), ...Object.keys(drivePagesForFallback||{})])];
@@ -2689,6 +3015,7 @@ async function restoreFromDrive() {
       if (imp.cfg) S.cfg = { ...S.cfg, ...imp.cfg, drive: myDrive };
       S.cfg.drive.fileId = fileId;
       S.global = imp.global && Array.isArray(imp.global.important) ? imp.global : { important: [] };
+      if (!Array.isArray(S.global.mergedNotes)) S.global.mergedNotes = [];
       for (const pg of Object.values(S.pages)) {
         for (const r of (pg.recs || [])) { if (r.data) saveBlob(r.id, r.data); }
       }
@@ -2750,6 +3077,10 @@ function importAll(el) {
           const ids = new Set((S.global.important||[]).map(i=>i.id));
           S.global.important = [...(S.global.important||[]), ...imp.global.important.filter(i=>!ids.has(i.id))];
         }
+        if (Array.isArray(imp.global?.mergedNotes)) {
+          const noteIds = new Set((S.global.mergedNotes||[]).map(n=>n.id));
+          S.global.mergedNotes = [...(S.global.mergedNotes||[]), ...imp.global.mergedNotes.filter(n=>!noteIds.has(n.id))];
+        }
         save(); renderPage(curDate); toast('Imported!');
       }
     } catch { toast('Invalid format'); }
@@ -2759,7 +3090,7 @@ function importAll(el) {
 }
 function confirmClear() {
   if (confirm('Delete ALL diary data? This cannot be undone.')) {
-    S.pages={}; S.global={important:[]}; save(); renderPage(curDate); toast('Cleared');
+    S.pages={}; S.global={important:[],mergedNotes:[]}; save(); renderPage(curDate); toast('Cleared');
   }
 }
 
